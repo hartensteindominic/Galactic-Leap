@@ -2,10 +2,104 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Expedition in Space</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Virtual Land Sale</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    body { text-align: center; font-family: Arial, sans-serif; }
-    .main {color: green}
-    h1 { color: #4CAF50; }
-    .text { font-size:130; }
-</style>
+        body { background-color: #0f172a; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .land-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .plot { aspect-ratio: 1; background: #1e293b; border: 1px solid #334155; border-radius: 8px; transition: 0.2s; }
+        .plot:active { transform: scale(0.95); background: #3b82f6; }
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; transform: translateY(100%); transition: transform 0.3s ease-out; box-shadow: 0 -10px 25px rgba(0,0,0,0.5); }
+        .bottom-sheet.open { transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <header class="p-6 flex justify-between items-center">
+        <h1 class="text-xl font-bold">LandDapp</h1>
+        <button id="connectBtn" class="bg-blue-600 px-4 py-2 rounded-full text-sm font-semibold">Connect Wallet</button>
+    </header>
+
+    <main>
+        <div class="px-6 mb-4">
+            <p class="text-slate-400 text-sm">Select a plot to purchase. Payments are auto-converted to ETH.</p>
+        </div>
+        
+        <div class="land-grid" id="grid">
+            </div>
+    </main>
+
+    <div id="sheet" class="bottom-sheet">
+        <div class="w-12 h-1.5 bg-slate-600 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-xl font-bold mb-2">Buy Plot #<span id="plotId">0</span></h2>
+        <p class="text-slate-400 mb-6">Price: 0.05 ETH</p>
+        
+        <div class="space-y-3">
+            <button onclick="buyLand()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-lg">Buy Now</button>
+            <button onclick="closeSheet()" class="w-full bg-slate-700 py-4 rounded-xl font-semibold">Cancel</button>
+        </div>
+        <p class="text-center text-xs text-slate-500 mt-4">Recipient: 0x13B8...6650</p>
+    </div>
+
+    <script>
+        const RECIPIENT_WALLET = "0x13B87B819252A81381C3Ce35e3Bd33199F4c6650";
+        let provider, signer, account;
+
+        // Initialize Grid
+        const grid = document.getElementById('grid');
+        for (let i = 1; i <= 20; i++) {
+            const div = document.createElement('div');
+            div.className = 'plot';
+            div.onclick = () => openSheet(i);
+            grid.appendChild(div);
+        }
+
+        async function connect() {
+            if (window.ethereum) {
+                try {
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    account = await provider.send("eth_requestAccounts", []);
+                    signer = await provider.getSigner();
+                    document.getElementById('connectBtn').innerText = "Connected";
+                    document.getElementById('connectBtn').classList.replace('bg-blue-600', 'bg-green-600');
+                } catch (err) {
+                    alert("Connection failed");
+                }
+            } else {
+                alert("Please open this in your Crypto Wallet's browser (MetaMask/Trust)");
+            }
+        }
+
+        function openSheet(id) {
+            document.getElementById('plotId').innerText = id;
+            document.getElementById('sheet').classList.add('open');
+        }
+
+        function closeSheet() {
+            document.getElementById('sheet').classList.remove('open');
+        }
+
+        async function buyLand() {
+            if (!signer) return await connect();
+
+            try {
+                // This sends 0.05 ETH directly to your wallet
+                const tx = await signer.sendTransaction({
+                    to: RECIPIENT_WALLET,
+                    value: ethers.parseEther("0.05")
+                });
+                
+                alert("Transaction Sent! Hash: " + tx.hash);
+                closeSheet();
+            } catch (err) {
+                console.error(err);
+                alert("Transaction failed or rejected.");
+            }
+        }
+
+        document.getElementById('connectBtn').onclick = connect;
+    </script>
+</body>
+</html>
