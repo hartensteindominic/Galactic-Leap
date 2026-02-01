@@ -15,7 +15,7 @@ contract ArtMarketplace {
     
     struct ArtListing {
         address payable seller;
-        uint256 price;
+        uint256 price; // Price in wei
         bool active;
         string tokenURI;
     }
