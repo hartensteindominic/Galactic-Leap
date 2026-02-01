@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Galactic Leap - AI-powered space exploration with AR-ready 3D visualizations">
+    <title>Galactic Leap - Explore the Universe</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🚀 Galactic Leap</h1>
+            <p class="subtitle">AI-Powered Space Exploration Platform</p>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- 3D Visualization Canvas -->
+            <section class="visualization-section">
+                <div id="canvas-container">
+                    <canvas id="space-canvas"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="toggleAR" class="btn btn-ar">🥽 AR Mode (Coming Soon)</button>
+                    <button id="togglePlanets" class="btn btn-primary">Toggle Planets</button>
+                    <button id="randomExplore" class="btn btn-secondary">Random Explore</button>
+                </div>
+            </section>
+
+            <!-- AI Assistant Panel -->
+            <section class="ai-panel">
+                <div class="panel-header">
+                    <h2>🤖 AI Space Assistant</h2>
+                    <div class="status-indicator online">Online</div>
+                </div>
+                <div id="chat-messages" class="chat-messages">
+                    <div class="message ai-message">
+                        <strong>AI Assistant:</strong> Welcome to Galactic Leap! I'm your AI space exploration guide. Ask me anything about planets, stars, or space exploration. Try "Tell me about Mars" or "Recommend a planet"!
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input 
+                        type="text" 
+                        id="user-input" 
+                        placeholder="Ask about space exploration..."
+                        class="chat-input"
+                    />
+                    <button id="send-btn" class="btn btn-send">Send</button>
+                </div>
+            </section>
+
+            <!-- Achievement Tracker -->
+            <section class="achievements">
+                <h3>🏆 Exploration Progress</h3>
+                <div id="achievement-list" class="achievement-list">
+                    <div class="achievement locked" data-achievement="first-visit">
+                        <span class="achievement-icon">🌟</span>
+                        <span class="achievement-name">First Visit</span>
+                    </div>
+                    <div class="achievement locked" data-achievement="planet-explorer">
+                        <span class="achievement-icon">🪐</span>
+                        <span class="achievement-name">Planet Explorer</span>
+                    </div>
+                    <div class="achievement locked" data-achievement="ai-conversationalist">
+                        <span class="achievement-icon">💬</span>
+                        <span class="achievement-name">AI Conversationalist</span>
+                    </div>
+                    <div class="achievement locked" data-achievement="cosmic-wanderer">
+                        <span class="achievement-icon">🌌</span>
+                        <span class="achievement-name">Cosmic Wanderer</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Made with ❤️ for space exploration enthusiasts | Open Source on GitHub</p>
+        </footer>
+    </div>
+
+    <script src="ai-assistant.js"></script>
+    <script src="space-scene.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "galactic-leap",
+  "version": "1.0.0",
+  "description": "An AI-powered interactive space exploration platform with AR-ready 3D visualizations",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "space",
+    "ai",
+    "ar",
+    "3d",
+    "exploration",
+    "astronomy",
+    "interactive"
+  ],
+  "author": "Dominic Hartenstein",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hartensteindominic/Galactic-Leap"
+  }
+}
