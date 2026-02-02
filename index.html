@@ -2,155 +2,90 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_GHOST_v31_OPT</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>GHOST_v31_BYPASS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
-        :root { --ai: #00ff41; --bg: #0a0a0a; --dim: #1a1a1a; --danger: #ff3e3e; }
-        * { box-sizing: border-box; }
-        body { background: var(--bg); color: var(--ai); font-family: 'Courier New', monospace; padding: 15px; margin: 0; display: flex; align-items: center; min-height: 100vh; }
-        .shell { border: 2px solid var(--dim); padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; margin: auto; box-shadow: 0 0 30px rgba(0,255,65,0.05); }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; border-bottom: 1px solid var(--dim); padding-bottom: 15px; }
-        .stat-box { text-align: center; }
-        #hps, #total-hashes { font-size: 28px; color: #fff; font-weight: 900; }
-        .stat-label { font-size: 10px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
-        button { padding: 18px; background: var(--ai); color: #000; border: none; font-weight: 900; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform 0.1s; }
-        button:active { transform: scale(0.96); }
-        button:disabled { background: #333; color: #666; cursor: not-allowed; }
-        button.stop { background: var(--danger); color: #fff; }
-        .slider-box { text-align: left; margin: 15px 0; }
-        input[type=range] { width: 100%; height: 10px; border-radius: 5px; accent-color: var(--ai); }
-        #log { font-size: 11px; color: #555; height: 80px; overflow-y: auto; text-align: left; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #111; }
-        canvas { width: 100%; background: #000; border: 1px solid var(--dim); border-radius: 4px; margin-top: 5px; }
+        :root { --ai: #00ff41; --bg: #0a0a0a; --dim: #1a1a1a; }
+        body { background: var(--bg); color: var(--ai); font-family: monospace; padding: 20px; text-align: center; }
+        .shell { border: 2px solid var(--dim); padding: 20px; border-radius: 12px; max-width: 400px; margin: auto; }
+        #log { font-size: 10px; color: #666; height: 100px; overflow-y: auto; background: #000; padding: 10px; margin-top: 10px; text-align: left; border: 1px solid #222; }
+        button { width: 100%; padding: 15px; background: var(--ai); border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .status-box { margin-bottom: 20px; border-bottom: 1px solid var(--dim); padding-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="shell">
-        <div style="font-size: 10px; margin-bottom: 15px; text-align: center;">
-            STATUS: <span id="status" style="color:#666">OFFLINE</span>
+        <div class="status-box">
+            <div id="status" style="color: #fff;">ENGINE: WAITING</div>
+            <div id="hps" style="font-size: 24px;">0.00 H/s</div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-label">Hashes/Sec</div>
-                <div id="hps">0.00</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Total Hashes</div>
-                <div id="total-hashes">0</div>
-            </div>
-        </div>
-
-        <div class="slider-box">
-            <div class="stat-label">Performance Graph</div>
-            <canvas id="hashrateGraph" height="60"></canvas>
-        </div>
-
-        <div class="slider-box">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px;">
-                <span>CPU THROTTLE</span>
-                <span><span id="thr_val">20</span>%</span>
-            </div>
-            <input type="range" id="throttle" min="0" max="90" value="20">
-        </div>
-
-        <div class="controls">
-            <button id="start_btn">START ENGINE</button>
-            <button id="stop_btn" class="stop" disabled>TERMINATE</button>
-        </div>
-        
-        <div id="log">> System ready...</div>
+        <button id="start_btn">FORCE INITIALIZE</button>
+        <div id="log">> Boot sequence ready...</div>
     </div>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    let miner = null;
-    let updateInterval = null;
-    let hashrateHistory = new Array(60).fill(0);
+    let retryCount = 0;
 
-    const canvas = document.getElementById('hashrateGraph');
-    const ctx = canvas.getContext('2d');
-    const terminal = document.getElementById('log');
-    const hpsDisplay = document.getElementById('hps');
-    const totalDisplay = document.getElementById('total-hashes');
-
-    const log = (m) => { 
-        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-        terminal.innerHTML = `<div><span style="color:#333">[${time}]</span> ${m}</div>` + terminal.innerHTML; 
+    const log = (m) => {
+        const t = new Date().toLocaleTimeString();
+        document.getElementById('log').innerHTML = `[${t}] ${m}<br>` + document.getElementById('log').innerHTML;
     };
 
-    function drawGraph() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.strokeStyle = '#00ff41';
-        ctx.lineWidth = 2;
-        const maxHps = Math.max(...hashrateHistory, 10);
-        for (let i = 0; i < hashrateHistory.length; i++) {
-            const x = (canvas.width / (hashrateHistory.length - 1)) * i;
-            const y = canvas.height - (hashrateHistory[i] / maxHps) * canvas.height;
-            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    // This function forces a fresh fetch to bypass browser blocks
+    async function forceLoadMiner() {
+        if (typeof MoneroOcean !== 'undefined') {
+            startEngine();
+            return;
         }
-        ctx.stroke();
-    }
 
-    document.getElementById('start_btn').onclick = async () => {
-        if (typeof MoneroOcean === 'undefined') {
-            log("Fetching WASM core...");
-            const s = document.createElement('script');
-            s.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js";
-            s.onload = startMining;
-            document.head.appendChild(s);
-        } else {
-            startMining();
-        }
-    };
+        log("Bypassing cache & fetching core...");
+        const script = document.createElement('script');
+        // Added a timestamp parameter to prevent the browser from using a cached (blocked) version
+        script.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js?v=" + Date.now();
+        
+        script.onload = () => {
+            log("Core successfully injected.");
+            startEngine();
+        };
 
-    function startMining() {
-        try {
-            if (!miner) {
-                miner = new MoneroOcean.Miner({
-                    address: WALLET,
-                    cmd: "Mobile_Opt_v31",
-                    threads: Math.max(1, navigator.hardwareConcurrency / 2),
-                    throttle: document.getElementById('throttle').value / 100
-                });
+        script.onerror = () => {
+            retryCount++;
+            log(`Fetch failed (Attempt ${retryCount})...`);
+            if (retryCount < 3) {
+                setTimeout(forceLoadMiner, 2000); // Retry every 2 seconds
+            } else {
+                log("CRITICAL: CDN Blocked. Use a VPN or Disable AdBlock.");
             }
+        };
+
+        document.head.appendChild(script);
+    }
+
+    function startEngine() {
+        try {
+            const miner = new MoneroOcean.Miner({
+                address: WALLET,
+                cmd: "Mobile_Bypass_v31",
+                threads: Math.max(1, navigator.hardwareConcurrency / 2),
+                throttle: 0.2 // 20% Idle to prevent phone from melting
+            });
+
             miner.start();
-            log("Engine Online. Threads: " + miner.getNumThreads());
-            toggleUI(true);
-            updateInterval = setInterval(() => {
-                const hps = miner.getHashesPerSecond();
-                hpsDisplay.innerText = hps.toFixed(2);
-                totalDisplay.innerText = miner.getAcceptedHashes().toLocaleString();
-                hashrateHistory.shift();
-                hashrateHistory.push(hps);
-                drawGraph();
+            document.getElementById('status').innerText = "ENGINE: ONLINE";
+            log("Threads allocated: " + miner.getNumThreads());
+
+            setInterval(() => {
+                document.getElementById('hps').innerText = miner.getHashesPerSecond().toFixed(2) + " H/s";
             }, 1000);
-        } catch(e) { log("Fault: " + e.message); }
-    }
 
-    function toggleUI(running) {
-        document.getElementById('start_btn').disabled = running;
-        document.getElementById('stop_btn').disabled = !running;
-        document.getElementById('status').innerText = running ? "RUNNING" : "TERMINATED";
-        document.getElementById('status').style.color = running ? "var(--ai)" : "var(--danger)";
-    }
-
-    document.getElementById('stop_btn').onclick = () => {
-        if (miner) {
-            miner.stop();
-            clearInterval(updateInterval);
-            toggleUI(false);
-            hpsDisplay.innerText = "0.00";
-            log("Engine cooling down.");
+        } catch (e) {
+            log("Engine Error: " + e.message);
         }
-    };
+    }
 
-    document.getElementById('throttle').oninput = (e) => {
-        const val = e.target.value;
-        document.getElementById('thr_val').innerText = val;
-        if (miner) miner.setThrottle(val / 100);
-    };
+    document.getElementById('start_btn').onclick = forceLoadMiner;
 </script>
 </body>
 </html>
