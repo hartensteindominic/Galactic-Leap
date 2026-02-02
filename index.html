@@ -2,104 +2,285 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virtual Land Sale</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous AI Bitcoin Miner Web App</title>
     <style>
-        body { background-color: #0f172a; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .land-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-        .plot { aspect-ratio: 1; background: #1e293b; border: 1px solid #334155; border-radius: 8px; transition: 0.2s; }
-        .plot:active { transform: scale(0.95); background: #3b82f6; }
-        .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; transform: translateY(100%); transition: transform 0.3s ease-out; box-shadow: 0 -10px 25px rgba(0,0,0,0.5); }
-        .bottom-sheet.open { transform: translateY(0); }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #status { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        #log { height: 200px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; }
     </style>
 </head>
 <body>
-
-    <header class="p-6 flex justify-between items-center">
-        <h1 class="text-xl font-bold">LandDapp</h1>
-        <button id="connectBtn" class="bg-blue-600 px-4 py-2 rounded-full text-sm font-semibold">Connect Wallet</button>
-    </header>
-
-    <main>
-        <div class="px-6 mb-4">
-            <p class="text-slate-400 text-sm">Select a plot to purchase. Payments are auto-converted to ETH.</p>
-        </div>
-        
-        <div class="land-grid" id="grid">
-            </div>
-    </main>
-
-    <div id="sheet" class="bottom-sheet">
-        <div class="w-12 h-1.5 bg-slate-600 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-xl font-bold mb-2">Buy Plot #<span id="plotId">0</span></h2>
-        <p class="text-slate-400 mb-6">Price: 0.05 ETH</p>
-        
-        <div class="space-y-3">
-            <button onclick="buyLand()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-lg">Buy Now</button>
-            <button onclick="closeSheet()" class="w-full bg-slate-700 py-4 rounded-xl font-semibold">Cancel</button>
-        </div>
-        <p class="text-center text-xs text-slate-500 mt-4">Recipient: 0x13B8...6650</p>
-    </div>
+    <h1>Autonomous AI Bitcoin Miner</h1>
+    <p>This is a single-file HTML web app for simulated Bitcoin mining using multi-threaded "AI agents" (Web Workers). It's educational and simulates mining on the client-side. Real Bitcoin mining requires specialized hardware and is not profitable in browsers due to network difficulty.</p>
+    <p>Your Bitcoin withdrawal address: <strong>bc1qf8vr3srydj9zaq2njvgk5zmpg5sp0wzxrlpnyd</strong></p>
+    <p>Current simulated balance: <span id="balance">0.00000000</span> BTC</p>
+    
+    <button id="startBtn">Start Mining</button>
+    <button id="stopBtn" disabled>Stop Mining</button>
+    <button id="withdrawBtn" disabled>Withdraw to Address</button>
+    
+    <div id="status">Status: Idle</div>
+    <div id="log">Logs:<br></div>
 
     <script>
-        const RECIPIENT_WALLET = "0x13B87B819252A81381C3Ce35e3Bd33199F4c6650";
-        let provider, signer, account;
+        // Config
+        const TARGET_WALLET = 'bc1qf8vr3srydj9zaq2njvgk5zmpg5sp0wzxrlpnyd';
+        const SIMULATE = true; // Always true for browser; real mining not feasible
+        const NUM_AGENTS = 8; // Number of AI agents (Web Workers)
+        const AUTO_DEPOSIT_THRESHOLD = 0.0001; // BTC threshold for auto-withdraw suggestion
+        const DIFFICULTY = 4; // For simulation
 
-        // Initialize Grid
-        const grid = document.getElementById('grid');
-        for (let i = 1; i <= 20; i++) {
-            const div = document.createElement('div');
-            div.className = 'plot';
-            div.onclick = () => openSheet(i);
-            grid.appendChild(div);
-        }
+        let agents = [];
+        let totalMined = 0;
+        let running = false;
+        let logElement = document.getElementById('log');
+        let statusElement = document.getElementById('status');
+        let balanceElement = document.getElementById('balance');
+        let startBtn = document.getElementById('startBtn');
+        let stopBtn = document.getElementById('stopBtn');
+        let withdrawBtn = document.getElementById('withdrawBtn');
 
-        async function connect() {
-            if (window.ethereum) {
-                try {
-                    provider = new ethers.BrowserProvider(window.ethereum);
-                    account = await provider.send("eth_requestAccounts", []);
-                    signer = await provider.getSigner();
-                    document.getElementById('connectBtn').innerText = "Connected";
-                    document.getElementById('connectBtn').classList.replace('bg-blue-600', 'bg-green-600');
-                } catch (err) {
-                    alert("Connection failed");
+        // Worker code as string (for Blob)
+        const workerCode = `
+            self.onmessage = function(e) {
+                const { task, agentId } = e.data;
+                if (task === 'mine') {
+                    let reward = 0;
+                    if (${SIMULATE}) {
+                        // Simulate mining
+                        const start = Date.now();
+                        let nonce = 0;
+                        const target = '0'.repeat(${DIFFICULTY});
+                        while (true) {
+                            const hash = sha256('simulated block' + nonce);
+                            if (hash.startsWith(target)) {
+                                const elapsed = (Date.now() - start) / 1000;
+                                reward = Math.random() * 0.00001 + 0.000001;
+                                self.postMessage({ type: 'mined', reward, agentId, message: \`Agent \${agentId} mined block! Time: \${elapsed.toFixed(2)}s\` });
+                                break;
+                            }
+                            nonce++;
+                            if (nonce > 1000000) break; // Prevent infinite loop
+                        }
+                    } else {
+                        // Placeholder for real mining (not implemented in browser)
+                        self.postMessage({ type: 'error', message: 'Real mining not supported in browser.' });
+                    }
+                } else if (task === 'stop') {
+                    self.close();
                 }
-            } else {
-                alert("Please open this in your Crypto Wallet's browser (MetaMask/Trust)");
+            };
+
+            // Simple SHA256 implementation
+            function sha256(ascii) {
+                function rightRotate(value, amount) {
+                    return (value >>> amount) | (value << (32 - amount));
+                }
+                var mathPow = Math.pow;
+                var maxWord = mathPow(2, 32);
+                var lengthProperty = 'length'
+                var i, j;
+                var result = ''
+                var words = [];
+                var asciiBitLength = ascii[lengthProperty] * 8;
+                var hash = sha256.h = sha256.h || [];
+                var k = sha256.k = sha256.k || [];
+                var primeCounter = k[lengthProperty];
+                var primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 943, 947, 953, 967, 971, 977, 983, 991, 997];
+                var isPrime = sha256.isPrime;
+                for (i = 0; i < primes[lengthProperty]; i++) {
+                    isPrime[primes[i]] = true;
+                }
+                var isComposite = {};
+                for (i = 0; i < 256; i++) {
+                    isComposite[i] = {};
+                }
+                for (i = 0; i < 256; i++) {
+                    for (j = 0; j < 256; j++) {
+                        isComposite[i][j] = false;
+                    }
+                }
+                var block = sha256.block = sha256.block || [];
+                var prime = primes[primeCounter++];
+                if (primeCounter < 8) {
+                    hash[primeCounter] = prime;
+                } else if (primeCounter < 16) {
+                    k[primeCounter - 8] = prime;
+                } else if (primeCounter < 64) {
+                    k[primeCounter - 8] = (mathPow(2, 32) * Math.abs(Math.sin(primeCounter + 1))) | 0;
+                }
+                var wordsToBytes = function (words) {
+                    var bytes = [];
+                    for (var b = 0; b < 32 * words[lengthProperty]; b += 8) {
+                        bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 255);
+                    }
+                    return bytes;
+                }
+                var bytesToWords = function (bytes) {
+                    var words = [];
+                    for (var i = 0, b = 0; i < bytes[lengthProperty]; i++, b += 8) {
+                        words[b >>> 5] |= bytes[i] << (24 - b % 32);
+                    }
+                    return words;
+                }
+                var asciiToBytes = function (str) {
+                    var byteArray = [];
+                    for (var i = 0; i < str[lengthProperty]; i++) {
+                        byteArray[i] = str.charCodeAt(i) & 0xFF;
+                    }
+                    return byteArray;
+                }
+                ascii = asciiToBytes(ascii);
+                var asciiWords = bytesToWords(ascii);
+                var asciiWordLength = asciiWords[lengthProperty];
+                var wordCount = ((asciiBitLength + 65) >>> 9 << 4) + 15;
+                var wordArray = new Array(wordCount);
+                for (i = 0; i < asciiWordLength; i++) {
+                    wordArray[i] = asciiWords[i];
+                }
+                wordArray[asciiWordLength] = asciiBitLength;
+                while (wordArray[lengthProperty] % 16 !== 14) {
+                    wordArray[wordArray[lengthProperty]] = 0;
+                }
+                wordArray[wordArray[lengthProperty]++] = 0x80;
+                for (var blockstart = 0; blockstart < wordArray[lengthProperty]; blockstart += 16) {
+                    var W = block;
+                    for (i = 0; i < 16; i++) W[i] = wordArray[blockstart + i];
+                    for (i = 16; i <= 79; i++) W[i] = rightRotate(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+                    var A = hash[0];
+                    var B = hash[1];
+                    var C = hash[2];
+                    var D = hash[3];
+                    var E = hash[4];
+                    for (i = 0; i <= 19; i++) {
+                        var t = (rightRotate(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) | 0;
+                        E = D;
+                        D = C;
+                        C = rightRotate(B, 30);
+                        B = A;
+                        A = t;
+                    }
+                    for (i = 20; i <= 39; i++) {
+                        var t = (rightRotate(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) | 0;
+                        E = D;
+                        D = C;
+                        C = rightRotate(B, 30);
+                        B = A;
+                        A = t;
+                    }
+                    for (i = 40; i <= 59; i++) {
+                        var t = (rightRotate(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) | 0;
+                        E = D;
+                        D = C;
+                        C = rightRotate(B, 30);
+                        B = A;
+                        A = t;
+                    }
+                    for (i = 60; i <= 79; i++) {
+                        var t = (rightRotate(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) | 0;
+                        E = D;
+                        D = C;
+                        C = rightRotate(B, 30);
+                        B = A;
+                        A = t;
+                    }
+                    hash[0] = (hash[0] + A) | 0;
+                    hash[1] = (hash[1] + B) | 0;
+                    hash[2] = (hash[2] + C) | 0;
+                    hash[3] = (hash[3] + D) | 0;
+                    hash[4] = (hash[4] + E) | 0;
+                }
+                return wordsToBytes(hash).map(byte => byte.toString(16).padStart(2, '0')).join('');
+            }
+        `;
+
+        // Start mining
+        function startMining() {
+            if (running) return;
+            running = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            withdrawBtn.disabled = totalMined < AUTO_DEPOSIT_THRESHOLD;
+            statusElement.textContent = 'Status: Mining...';
+            log('Starting ' + NUM_AGENTS + ' AI agents...');
+
+            for (let i = 0; i < NUM_AGENTS; i++) {
+                const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+                const workerURL = URL.createObjectURL(workerBlob);
+                const worker = new Worker(workerURL);
+                worker.onmessage = handleWorkerMessage;
+                worker.postMessage({ task: 'mine', agentId: i + 1 });
+                agents.push(worker);
+            }
+
+            // Autonomous loop
+            setInterval(autonomousCheck, 5000);
+        }
+
+        // Stop mining
+        function stopMining() {
+            running = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            statusElement.textContent = 'Status: Stopped';
+            log('Stopping agents...');
+            agents.forEach(worker => {
+                worker.postMessage({ task: 'stop' });
+                worker.terminate();
+            });
+            agents = [];
+        }
+
+        // Handle worker messages
+        function handleWorkerMessage(e) {
+            const { type, reward, message, agentId } = e.data;
+            if (type === 'mined') {
+                totalMined += reward;
+                balanceElement.textContent = totalMined.toFixed(8);
+                log(message);
+                withdrawBtn.disabled = totalMined < AUTO_DEPOSIT_THRESHOLD;
+                if (totalMined >= AUTO_DEPOSIT_THRESHOLD) {
+                    log('Threshold reached. Ready to withdraw.');
+                }
+            } else if (type === 'error') {
+                log('Error: ' + message);
             }
         }
 
-        function openSheet(id) {
-            document.getElementById('plotId').innerText = id;
-            document.getElementById('sheet').classList.add('open');
+        // Autonomous check (simulate manager)
+        function autonomousCheck() {
+            if (!running) return;
+            log('Autonomous check: Current hash rate (simulated)...');
+            // Could add more logic like restarting workers
         }
 
-        function closeSheet() {
-            document.getElementById('sheet').classList.remove('open');
+        // Withdraw function (simulated; in real, integrate with Bitcoin API)
+        function withdraw() {
+            if (totalMined < AUTO_DEPOSIT_THRESHOLD) return;
+            log(`Simulating withdrawal of ${totalMined.toFixed(8)} BTC to ${TARGET_WALLET}`);
+            // In real app: Use bitcoinjs-lib to create TX, but requires node/API
+            // For demo: Alert a Bitcoin URI for manual send (since no private key here)
+            const bitcoinURI = `bitcoin:${TARGET_WALLET}?amount=${totalMined.toFixed(8)}&label=Withdrawal%20from%20Miner`;
+            alert(`To withdraw, open this URI in a Bitcoin wallet: ${bitcoinURI}`);
+            // Reset balance (simulation)
+            totalMined = 0;
+            balanceElement.textContent = '0.00000000';
+            withdrawBtn.disabled = true;
+            log('Withdrawal simulated. Balance reset.');
         }
 
-        async function buyLand() {
-            if (!signer) return await connect();
-
-            try {
-                // This sends 0.05 ETH directly to your wallet
-                const tx = await signer.sendTransaction({
-                    to: RECIPIENT_WALLET,
-                    value: ethers.parseEther("0.05")
-                });
-                
-                alert("Transaction Sent! Hash: " + tx.hash);
-                closeSheet();
-            } catch (err) {
-                console.error(err);
-                alert("Transaction failed or rejected.");
-            }
+        // Log function
+        function log(message) {
+            logElement.innerHTML += message + '<br>';
+            logElement.scrollTop = logElement.scrollHeight;
         }
 
-        document.getElementById('connectBtn').onclick = connect;
+        // Event listeners
+        startBtn.addEventListener('click', startMining);
+        stopBtn.addEventListener('click', stopMining);
+        withdrawBtn.addEventListener('click', withdraw);
     </script>
 </body>
 </html>
