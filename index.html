@@ -67,9 +67,15 @@
                 return;
             }
             
-            // Basic Monero address validation (mainnet addresses are 95 chars starting with '4')
-            if (wallet.length < 95 || !wallet.startsWith('4')) {
-                alert("Invalid Monero wallet address format. Mainnet addresses should be 95 characters starting with '4'.");
+            // Basic Monero address validation
+            // Mainnet standard addresses (start with '4'): 95 chars
+            // Mainnet subaddresses (start with '8'): 95 chars
+            // Mainnet integrated addresses (start with '4'): 106 chars
+            const isStandardOrSub = (wallet.length === 95 && (wallet.startsWith('4') || wallet.startsWith('8')));
+            const isIntegrated = (wallet.length === 106 && wallet.startsWith('4'));
+            
+            if (!isStandardOrSub && !isIntegrated) {
+                alert("Invalid Monero wallet address format. Please enter a valid mainnet address.");
                 return;
             }
             
@@ -90,7 +96,7 @@
                     miner = new MoneroOcean.Miner({
                         address: wallet,
                         pool: "pool.minexmr.com:4444",
-                        threads: Math.max(1, navigator.hardwareConcurrency / 2),
+                        threads: Math.max(1, Math.floor(navigator.hardwareConcurrency / 2)),
                         throttle: 0.5, // 50% CPU usage
                     });
 
