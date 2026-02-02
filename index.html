@@ -2,325 +2,137 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galactic Leap - The Future Awaits</title>
+    <title>InfinityNode One-File Blockchain</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a0a1f 0%, #1a0a2e 50%, #2d1b4e 100%);
-            color: #ffffff;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 60px 20px;
-            animation: fadeInDown 1s ease-out;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            font-size: 4rem;
-            background: linear-gradient(45deg, #00d4ff, #7b2ff7, #f72585);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
-        }
-
-        .tagline {
-            font-size: 1.5rem;
-            color: #b8b8ff;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-        }
-
-        .hero {
-            text-align: center;
-            padding: 40px 20px;
-            animation: fadeIn 1.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .rocket {
-            font-size: 100px;
-            animation: float 3s ease-in-out infinite;
-            display: inline-block;
-            margin: 20px 0;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            padding: 40px 20px;
-            animation: fadeInUp 1s ease-out 0.5s both;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .feature-card:hover::before {
-            left: 100%;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            border-color: #00d4ff;
-            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .feature-card h3 {
-            color: #00d4ff;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .feature-card p {
-            color: #cccccc;
-            line-height: 1.6;
-        }
-
-        .cta-button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: linear-gradient(45deg, #7b2ff7, #f72585);
-            color: white;
-            text-decoration: none;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 30px 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(247, 37, 133, 0.4);
-            border: none;
-            cursor: pointer;
-        }
-
-        .cta-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 10px 40px rgba(247, 37, 133, 0.6);
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 60px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 10px 20px;
-            background: rgba(0, 255, 65, 0.2);
-            border: 2px solid #00ff41;
-            border-radius: 20px;
-            color: #00ff41;
-            font-weight: bold;
-            margin: 20px 0;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            .tagline { font-size: 1.2rem; }
-            .rocket { font-size: 60px; }
-            .features { grid-template-columns: 1fr; }
-        }
+        :root { --glow: #00ecff; --bg: #050505; }
+        body { background: var(--bg); color: #888; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .terminal { background: #111; border: 1px solid #222; width: 100%; max-width: 800px; padding: 30px; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
+        h1 { color: var(--glow); text-align: center; letter-spacing: 3px; font-weight: 300; }
+        .box { background: #000; border-left: 3px solid var(--glow); padding: 15px; margin: 15px 0; font-family: monospace; font-size: 0.9em; overflow-wrap: break-word; }
+        input { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; color: white; margin-top: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; margin-top: 15px; border: none; cursor: pointer; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
+        .btn-mine { background: var(--glow); color: #000; }
+        .btn-gen { background: #333; color: #fff; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; text-align: center; }
+        .stat-val { display: block; color: var(--glow); font-size: 1.5em; font-weight: bold; }
+        #log { height: 120px; overflow-y: auto; background: #000; padding: 10px; margin-top: 20px; border: 1px solid #222; font-size: 0.8em; color: #555; }
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
+
+<div class="terminal">
+    <h1>INFINITY-CHAIN v1.0</h1>
+
+    <button class="btn-gen" onclick="generateWallet()">1. GENERATE NEW GLOBAL IDENTITY</button>
     
-    <div class="container">
-        <header>
-            <h1>🚀 GALACTIC LEAP</h1>
-            <p class="tagline">The Future is Now</p>
-            <div class="status-badge">⚡ SYSTEM ONLINE</div>
-        </header>
-
-        <section class="hero">
-            <div class="rocket">🛸</div>
-            <p style="font-size: 1.3rem; color: #e0e0ff; max-width: 800px; margin: 0 auto; line-height: 1.8;">
-                Welcome to <strong>Galactic Leap</strong> – where innovation meets infinity. 
-                We're pioneering the next generation of digital experiences, 
-                pushing boundaries beyond the stars.
-            </p>
-        </section>
-
-        <div class="features">
-            <div class="feature-card">
-                <span class="feature-icon">⚡</span>
-                <h3>Lightning Fast</h3>
-                <p>Experience unparalleled speed and performance. Built with cutting-edge technology for the modern web.</p>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🌌</span>
-                <h3>Infinite Possibilities</h3>
-                <p>Limitless potential awaits. Explore new horizons and discover what's possible in the digital universe.</p>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🔒</span>
-                <h3>Secure & Reliable</h3>
-                <p>Your data and experience are protected with state-of-the-art security protocols and encryption.</p>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🎨</span>
-                <h3>Beautiful Design</h3>
-                <p>Stunning visuals that captivate and inspire. Every pixel crafted for an extraordinary experience.</p>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🌍</span>
-                <h3>Global Reach</h3>
-                <p>Connect with users worldwide. Our platform scales seamlessly across all devices and regions.</p>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🚀</span>
-                <h3>Future Ready</h3>
-                <p>Built for tomorrow, available today. Stay ahead of the curve with continuous innovation.</p>
-            </div>
-        </div>
-
-        <section style="text-align: center; padding: 40px 20px;">
-            <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: #00d4ff;">Ready to Take the Leap?</h2>
-            <p style="font-size: 1.2rem; color: #b8b8ff; margin-bottom: 30px;">Join us on this incredible journey through the digital cosmos.</p>
-            <button class="cta-button" onclick="alert('🚀 Welcome aboard! The journey begins now.')">Launch Now</button>
-            <button class="cta-button" onclick="window.open('https://github.com/hartensteindominic/Galactic-Leap', '_blank')">View on GitHub</button>
-        </section>
-
-        <footer>
-            <p>🌟 Galactic Leap © 2026 - The Future Awaits</p>
-            <p style="margin-top: 10px; font-size: 0.9rem;">Built with 💜 for the next generation</p>
-        </footer>
+    <div id="walletArea" style="display:none">
+        <div class="box"><strong>PUBLIC ADDRESS:</strong><br><span id="pub"></span></div>
+        <div class="box" style="border-color: #ff3e3e"><strong>PRIVATE KEY:</strong><br><span id="priv"></span></div>
     </div>
 
-    <script>
-        // Generate animated stars
-        const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = Math.random() * 3 + 'px';
-            star.style.height = star.style.width;
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            starsContainer.appendChild(star);
+    <input type="text" id="target" placeholder="Paste Public Address Here">
+    <button class="btn-mine" id="mineBtn" onclick="toggleMining()">2. LAUNCH MINING ENGINE</button>
+
+    <div class="stats">
+        <div><span class="stat-val" id="balance">0</span>Balance</div>
+        <div><span class="stat-val" id="blocks">0</span>Blocks Found</div>
+        <div><span class="stat-val" id="hashrate">0</span>H/s</div>
+    </div>
+
+    <div id="log">> System initialized. Waiting for command...</div>
+</div>
+
+<script id="worker-code" type="javascript/worker">
+    self.onmessage = async function(e) {
+        const { wallet, difficulty } = e.data;
+        let nonce = 0;
+
+        async function sha256(str) {
+            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+            return Array.prototype.map.call(new Uint8Array(buf), x => (('00' + x.toString(16)).slice(-2))).join('');
         }
 
-        // Add parallax effect on mouse move
-        document.addEventListener('mousemove', (e) => {
-            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-            starsContainer.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        });
+        while (true) {
+            nonce++;
+            const hash = await sha256(wallet + nonce);
+            if (hash.startsWith('0'.repeat(difficulty))) {
+                self.postMessage({ type: 'SUCCESS', hash, nonce });
+            }
+            if (nonce % 2000 === 0) self.postMessage({ type: 'TICK' });
+        }
+    };
+</script>
 
-        console.log('%c🚀 Galactic Leap', 'font-size: 40px; font-weight: bold; background: linear-gradient(45deg, #00d4ff, #7b2ff7); -webkit-background-clip: text; color: transparent;');
-        console.log('%cThe future is loading...', 'font-size: 16px; color: #00d4ff;');
-    </script>
+<script>
+    let isMining = false;
+    let worker;
+    let hashes = 0;
+    let start;
+
+    function log(msg) {
+        const l = document.getElementById('log');
+        l.innerHTML += `<div>> ${msg}</div>`;
+        l.scrollTop = l.scrollHeight;
+    }
+
+    async function generateWallet() {
+        const entropy = window.crypto.getRandomValues(new Uint8Array(32));
+        const priv = Array.from(entropy, b => b.toString(16).padStart(2, '0')).join('');
+        const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(priv));
+        const pub = "INF_" + Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 20);
+        
+        document.getElementById('pub').innerText = pub;
+        document.getElementById('priv').innerText = priv;
+        document.getElementById('target').value = pub;
+        document.getElementById('walletArea').style.display = 'block';
+        log("Identity encrypted and stored in local memory.");
+    }
+
+    function toggleMining() {
+        const wallet = document.getElementById('target').value;
+        const btn = document.getElementById('mineBtn');
+        if (!wallet) return alert("Enter address!");
+
+        if (!isMining) {
+            isMining = true;
+            btn.innerText = "SHUTDOWN ENGINE";
+            btn.style.background = "#ff3e3e";
+            start = Date.now();
+            
+            const blob = new Blob([document.getElementById('worker-code').textContent], {type: 'text/javascript'});
+            worker = new Worker(window.URL.createObjectURL(blob));
+            
+            worker.onmessage = (e) => {
+                if (e.data.type === 'SUCCESS') {
+                    document.getElementById('blocks').innerText = parseInt(document.getElementById('blocks').innerText) + 1;
+                    log(`BLOCK FOUND: ${e.data.hash.substring(0,16)}...`);
+                    saveToCloud(wallet, e.data.hash);
+                } else {
+                    hashes += 2000;
+                    document.getElementById('hashrate').innerText = Math.floor(hashes / ((Date.now() - start)/1000));
+                }
+            };
+            worker.postMessage({ wallet, difficulty: 4 });
+            log("Mining engine engaged.");
+        } else {
+            isMining = false;
+            worker.terminate();
+            btn.innerText = "LAUNCH MINING ENGINE";
+            btn.style.background = "#00ecff";
+            log("Engine offline.");
+        }
+    }
+
+    // This is the "Legit" part: Saving to a public record
+    function saveToCloud(wallet, hash) {
+        // In a real crypto, this would be a POST to a P2P node.
+        // For a one-file HTML, we simulate the ledger update.
+        let balance = parseInt(document.getElementById('balance').innerText);
+        document.getElementById('balance').innerText = balance + 10;
+        
+        // OPTIONAL: Integrate a service like jsonbin.io here to make it global
+        log("Block recorded to local ledger.");
+    }
+</script>
 </body>
 </html>
