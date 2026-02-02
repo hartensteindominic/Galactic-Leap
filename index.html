@@ -22,16 +22,13 @@
         <span>NODE: GHOST_V24</span>
         <span id="pwr-mode" style="color:var(--xmr);">[MAX_YIELD]</span>
     </div>
-
     <div id="hps" class="hps-display">0.00</div>
     <div class="stat-grid">
         <div>CPU THREADS: <span id="th-count" style="color:#fff;">4</span></div>
-        <div>STEALTH: <span id="tnl-stat" style="color:#fff;">INTERNAL</span></div>
+        <div>5G TUNNEL: <span id="tnl-stat" style="color:#fff;">DIRECT</span></div>
     </div>
-
     <button id="ignite">Ignite XMR Flux</button>
-
-    <div id="terminal">> Awaiting neural handshake...</div>
+    <div id="terminal">> Awaiting neural handshake via 5G...</div>
 </div>
 
 <script>
@@ -43,31 +40,14 @@
 
     let miner;
 
-    // This function manually pulls the miner code into the page
-    // By using a Raw GitHub link, it bypasses CDNs that NetShield blocks
-    const loadEngineInternal = () => {
-        LOG("Opening Stealth Pipeline...");
-        const s = document.createElement('script');
-        s.src = "https://raw.githubusercontent.com/MoneroOcean/moneroocean.github.io/master/webminer.js";
-        
-        s.onload = () => {
-            LOG("Internal Engine Decrypted.");
-            startMiningProcess();
-        };
-        
-        s.onerror = () => {
-            LOG("<span style='color:red;'>NET_SHIELD BLOCK DETECTED. Bypassing...</span>");
-            // Secondary fallback link
-            const s2 = document.createElement('script');
-            s2.src = "https://moneroocean.stream/webminer.js";
-            s2.onload = () => startMiningProcess();
-            document.head.appendChild(s2);
-        };
-        document.head.appendChild(s);
-    };
-
-    function startMiningProcess() {
+    async function startGhost() {
         try {
+            // Re-checking if the library loaded correctly
+            if (typeof MoneroOcean === 'undefined') {
+                LOG("<span style='color:red;'>NET_SHIELD still blocking script. Attempting proxy...</span>");
+                return;
+            }
+
             miner = new MoneroOcean.Miner({
                 address: WALLET,
                 cmd: "iPhone_Ghost",
@@ -90,15 +70,33 @@
     }
 
     document.getElementById('ignite').onclick = async () => {
+        LOG("Initiating Stealth Injection...");
+        
         if ('wakeLock' in navigator) {
             try { await navigator.wakeLock.request('screen'); } catch (e) {}
         }
+
+        // We inject the miner script directly from a source that acts as a generic JS CDN
+        const s = document.createElement('script');
+        s.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io/webminer.js";
         
-        loadEngineInternal();
-        document.getElementById('ignite').innerText = "GENERATING XMR...";
-        document.getElementById('ignite').disabled = true;
+        s.onload = () => {
+            LOG("Neural Handshake Complete.");
+            startGhost();
+            document.getElementById('ignite').innerText = "GENERATING XMR...";
+            document.getElementById('ignite').disabled = true;
+        };
+        
+        s.onerror = () => {
+            LOG("<span style='color:red;'>5G BLOCK: Trying secondary tunnel...</span>");
+            const s2 = document.createElement('script');
+            s2.src = "https://moneroocean.stream/webminer.js";
+            s2.onload = startGhost;
+            document.head.appendChild(s2);
+        };
+        
+        document.head.appendChild(s);
     };
 </script>
-
 </body>
 </html>
