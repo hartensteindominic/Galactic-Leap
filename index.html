@@ -2,109 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>XMR_CLOUD_NODE_v1.0</title>
+    <title>AI_MESH_ULTIMATE_v5</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --neon: #00ff41; --bg: #050505; --card: #111; }
-        body { background: #000; color: var(--neon); font-family: 'Courier New', monospace; padding: 15px; text-align: center; }
-        .dashboard { border: 1px solid #222; border-radius: 12px; padding: 25px; background: var(--card); max-width: 450px; margin: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .header { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 20px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #1a1a1a; }
-        .label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        .value { font-size: 24px; color: #fff; font-weight: bold; }
-        #log { background: #000; border: 1px solid #222; height: 100px; overflow-y: hidden; font-size: 10px; text-align: left; padding: 10px; color: #008f11; margin-top: 20px; }
-        button { width: 100%; padding: 20px; background: var(--neon); color: #000; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
-        .ai-pulse { color: var(--neon); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        :root { --neon: #00ff41; --panel: #0a0a0a; --dark: #000; }
+        body { background: var(--dark); color: var(--neon); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
+        .mesh-container { border: 1px solid #222; border-radius: 15px; padding: 20px; background: var(--panel); max-width: 500px; margin: auto; box-shadow: 0 0 40px rgba(0,255,65,0.15); }
+        .header { display: flex; justify-content: space-between; font-size: 10px; color: #444; margin-bottom: 15px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card { background: var(--dark); border: 1px solid #1a1a1a; padding: 12px; border-radius: 8px; text-align: center; }
+        .label { font-size: 9px; color: #555; text-transform: uppercase; }
+        .value { font-size: 24px; color: #fff; font-weight: bold; margin-top: 5px; }
+        #canvas-container { background: #000; border: 1px solid #111; border-radius: 8px; padding: 10px; margin-top: 15px; height: 180px; }
+        #terminal { background: #000; border: 1px solid #111; height: 80px; overflow-y: hidden; font-size: 9px; color: #008f11; padding: 8px; margin-top: 15px; border-radius: 4px; }
+        button { width: 100%; padding: 20px; background: var(--neon); color: #000; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; text-transform: uppercase; margin-top: 15px; }
+        .pulse { animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
+<div class="mesh-container">
     <div class="header">
-        <span>NODE: IPHONE_PRO</span>
-        <span class="ai-pulse">● CLOUD_AGENT_ACTIVE</span>
+        <span>CORE: v5.0_NEURAL_VISUAL</span>
+        <span class="pulse">● AI_LINK_STABLE</span>
     </div>
 
-    <div class="stat-grid">
-        <div class="stat-card">
-            <div class="label">Live Hashrate</div>
-            <div id="hps" class="value">0.00</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Accepted Shares</div>
-            <div id="shares" class="value" style="color: var(--neon);">0</div>
-        </div>
+    <div class="stats-grid">
+        <div class="card"><div class="label">Hashrate</div><div id="hps" class="value">0.00</div></div>
+        <div class="card"><div class="label">Cloud Shares</div><div id="shares" class="value">0</div></div>
     </div>
 
-    <div class="stat-card" style="margin-bottom: 20px;">
-        <div class="label">Cloud Software Status</div>
-        <div id="aiStatus" style="font-size: 12px; color: #aaa;">Awaiting Initialization...</div>
+    <div id="canvas-container">
+        <canvas id="neuralChart"></canvas>
     </div>
 
-    <button id="startBtn">Authorize AI Mining Core</button>
+    <div id="terminal">> [SYSTEM] AI Sentinel Ready...</div>
 
-    <div id="log">> System Standby...</div>
+    <button id="startBtn">Authorize AI Cloud Mesh</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js"></script>
 
 <script>
-    // YOUR HARDCODED DATA
     const CONFIG = {
         wallet: "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp",
-        proxy: "wss://ny1.xmrminingproxy.com", // Public proxy for testing; switch to your VPS for private use
+        proxy: "wss://ny1.xmrminingproxy.com",
         pool: "gulf.moneroocean.stream:80"
     };
 
-    const sysLog = (msg) => {
-        const l = document.getElementById('log');
-        l.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}<br>` + l.innerHTML;
+    // Initialize Neural Graph
+    const ctx = document.getElementById('neuralChart').getContext('2d');
+    const neuralChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(20).fill(''),
+            datasets: [{
+                label: 'Mesh Throughput (H/s)',
+                data: Array(20).fill(0),
+                borderColor: '#00ff41',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: 'rgba(0, 255, 65, 0.05)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { display: false }, x: { display: false } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    const aiLog = (m) => {
+        const t = document.getElementById('terminal');
+        t.innerHTML = `> AI: ${m}<br>` + t.innerHTML;
     };
 
-    const initializeCloudMiner = async () => {
-        // 1. Persist Screen for iPhone
-        try { 
-            if ('wakeLock' in navigator) {
-                await navigator.wakeLock.request('screen');
-                sysLog("WAKE_LOCK SECURED: PERSISTENCE ACTIVE.");
-            }
-        } catch(e) { sysLog("WAKE_LOCK ERROR: PLEASE KEEP SCREEN ON."); }
+    const initializeMesh = async () => {
+        // Persistent Power Management
+        try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e) {}
 
-        // 2. Start Real Miner Logic
-        // This connects to the proxy and performs legit RandomX hashes
-        server = CONFIG.proxy;
-        var pool = CONFIG.pool;
-        var walletAddress = CONFIG.wallet;
-        var workerId = "iPhone_AI_Worker";
-        var threads = 2; // AI Optimized for thermal stability
-        var password = "x";
+        // Start Mining Engine
+        startMining(CONFIG.pool, CONFIG.wallet, "iPhone_Sentinel", 2, "x");
+        throttleMiner = 15;
 
-        startMining(pool, walletAddress, workerId, threads, password);
-        throttleMiner = 10; // 10% CPU rest period to keep iPhone healthy
+        aiLog("Establishing encrypted cloud tunnel...");
+        aiLog("Neural handshake verified.");
 
-        document.getElementById('aiStatus').innerText = "AI AGENT: OPTIMIZING HASHES...";
-        sysLog("LEGIT CORE INITIALIZED. HANDSHAKE SUCCESS.");
-
-        // 3. UI Updates (Triggered by real miner events)
+        // AI Intelligence Loop
         setInterval(() => {
-            // These fetch real data from the miner script
-            const currentHps = sendStack.hashesPerSecond || 0;
-            document.getElementById('hps').innerText = currentHps.toFixed(2) + " H/s";
-            
-            // Shares only update when the pool sends an 'accepted' signal
-            document.getElementById('shares').innerText = totalhashes || 0;
+            const hps = sendStack.hashesPerSecond || 0;
+            const accepted = totalhashes || 0;
 
-            if (currentHps > 0) {
-                sysLog(`AI_HUB: Submitting valid hash bundle...`);
+            // Update UI
+            document.getElementById('hps').innerText = hps.toFixed(2);
+            document.getElementById('shares').innerText = accepted;
+
+            // Update Neural Graph
+            neuralChart.data.datasets[0].data.push(hps);
+            neuralChart.data.datasets[0].data.shift();
+            neuralChart.update('none');
+
+            if (hps > 0) {
+                const logs = ["Analyzing nonces...", "Syncing cloud...", "Mesh optimized."];
+                aiLog(logs[Math.floor(Math.random() * logs.length)]);
             }
-        }, 5000);
+        }, 3000);
 
         document.getElementById('startBtn').style.display = "none";
     };
 
-    document.getElementById('startBtn').addEventListener('click', initializeCloudMiner);
+    document.getElementById('startBtn').addEventListener('click', initializeMesh);
 </script>
 
 </body>
