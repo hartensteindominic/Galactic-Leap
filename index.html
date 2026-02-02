@@ -2,90 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GHOST_v31_BYPASS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Personal Monero Miner</title>
     <style>
-        :root { --ai: #00ff41; --bg: #0a0a0a; --dim: #1a1a1a; }
-        body { background: var(--bg); color: var(--ai); font-family: monospace; padding: 20px; text-align: center; }
-        .shell { border: 2px solid var(--dim); padding: 20px; border-radius: 12px; max-width: 400px; margin: auto; }
-        #log { font-size: 10px; color: #666; height: 100px; overflow-y: auto; background: #000; padding: 10px; margin-top: 10px; text-align: left; border: 1px solid #222; }
-        button { width: 100%; padding: 15px; background: var(--ai); border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .status-box { margin-bottom: 20px; border-bottom: 1px solid var(--dim); padding-bottom: 10px; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+            margin: 0;
+        }
+        h1 {
+            color: #00ff87;
+        }
+        #miner-container {
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #00ff87;
+            border-radius: 8px;
+            max-width: 400px;
+            background: #2a2a2a;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #00ff87;
+            color: #000;
+            cursor: pointer;
+        }
+        #status, #hashrate {
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="shell">
-        <div class="status-box">
-            <div id="status" style="color: #fff;">ENGINE: WAITING</div>
-            <div id="hps" style="font-size: 24px;">0.00 H/s</div>
-        </div>
-
-        <button id="start_btn">FORCE INITIALIZE</button>
-        <div id="log">> Boot sequence ready...</div>
+    <h1>Monero Miner</h1>
+    <div id="miner-container">
+        <input id="wallet" type="text" placeholder="Enter your Monero Wallet Address">
+        <button id="start">Start Mining</button>
+        <button id="stop" disabled>Stop Mining</button>
+        <div id="status">Status: Waiting...</div>
+        <div id="hashrate">Hashrate: 0 H/s</div>
     </div>
 
-<script>
-    const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    let retryCount = 0;
+    <script>
+        let miner = null;
 
-    const log = (m) => {
-        const t = new Date().toLocaleTimeString();
-        document.getElementById('log').innerHTML = `[${t}] ${m}<br>` + document.getElementById('log').innerHTML;
-    };
-
-    // This function forces a fresh fetch to bypass browser blocks
-    async function forceLoadMiner() {
-        if (typeof MoneroOcean !== 'undefined') {
-            startEngine();
-            return;
-        }
-
-        log("Bypassing cache & fetching core...");
-        const script = document.createElement('script');
-        // Added a timestamp parameter to prevent the browser from using a cached (blocked) version
-        script.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js?v=" + Date.now();
-        
-        script.onload = () => {
-            log("Core successfully injected.");
-            startEngine();
-        };
-
-        script.onerror = () => {
-            retryCount++;
-            log(`Fetch failed (Attempt ${retryCount})...`);
-            if (retryCount < 3) {
-                setTimeout(forceLoadMiner, 2000); // Retry every 2 seconds
-            } else {
-                log("CRITICAL: CDN Blocked. Use a VPN or Disable AdBlock.");
+        document.getElementById('start').addEventListener('click', function () {
+            const wallet = document.getElementById('wallet').value.trim();
+            if (!wallet) {
+                alert("Please enter a valid Monero wallet address.");
+                return;
             }
-        };
 
-        document.head.appendChild(script);
-    }
+            document.getElementById('status').innerText = "Status: Initializing...";
+            
+            // Load MoneroOcean mining script dynamically
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js";
+            script.onload = () => {
+                if (typeof MoneroOcean !== "undefined") {
+                    miner = new MoneroOcean.Miner({
+                        address: wallet,
+                        pool: "pool.minexmr.com:4444",
+                        threads: Math.max(1, navigator.hardwareConcurrency / 2),
+                        throttle: 0.5, // 50% CPU usage
+                    });
 
-    function startEngine() {
-        try {
-            const miner = new MoneroOcean.Miner({
-                address: WALLET,
-                cmd: "Mobile_Bypass_v31",
-                threads: Math.max(1, navigator.hardwareConcurrency / 2),
-                throttle: 0.2 // 20% Idle to prevent phone from melting
-            });
+                    miner.start();
+                    document.getElementById('start').disabled = true;
+                    document.getElementById('stop').disabled = false;
+                    document.getElementById('status').innerText = "Status: Mining...";
 
-            miner.start();
-            document.getElementById('status').innerText = "ENGINE: ONLINE";
-            log("Threads allocated: " + miner.getNumThreads());
+                    // Update the hashrate display every second
+                    setInterval(() => {
+                        if (miner && miner.isRunning()) {
+                            const hashrate = miner.getHashesPerSecond().toFixed(2);
+                            document.getElementById('hashrate').innerText = `Hashrate: ${hashrate} H/s`;
+                        }
+                    }, 1000);
+                }
+            };
+            script.onerror = () => {
+                document.getElementById('status').innerText = "Status: Failed to load mining script.";
+            };
 
-            setInterval(() => {
-                document.getElementById('hps').innerText = miner.getHashesPerSecond().toFixed(2) + " H/s";
-            }, 1000);
+            document.head.appendChild(script);
+        });
 
-        } catch (e) {
-            log("Engine Error: " + e.message);
-        }
-    }
-
-    document.getElementById('start_btn').onclick = forceLoadMiner;
-</script>
+        document.getElementById('stop').addEventListener('click', function () {
+            if (miner) {
+                miner.stop();
+                document.getElementById('start').disabled = false;
+                document.getElementById('stop').disabled = true;
+                document.getElementById('status').innerText = "Status: Mining Stopped.";
+                document.getElementById('hashrate').innerText = "Hashrate: 0 H/s";
+            }
+        });
+    </script>
 </body>
 </html>
