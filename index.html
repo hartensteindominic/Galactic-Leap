@@ -55,14 +55,31 @@
 
     <script>
         let miner = null;
+        let hashrateInterval = null;
+        let isLoading = false;
 
         document.getElementById('start').addEventListener('click', function () {
             const wallet = document.getElementById('wallet').value.trim();
+            
+            // Validate wallet address is not empty
             if (!wallet) {
                 alert("Please enter a valid Monero wallet address.");
                 return;
             }
+            
+            // Basic Monero address validation (mainnet addresses are 95 chars starting with '4')
+            if (wallet.length < 95 || !wallet.startsWith('4')) {
+                alert("Invalid Monero wallet address format. Mainnet addresses should be 95 characters starting with '4'.");
+                return;
+            }
+            
+            // Prevent multiple simultaneous loads
+            if (isLoading) {
+                return;
+            }
 
+            isLoading = true;
+            document.getElementById('start').disabled = true;
             document.getElementById('status').innerText = "Status: Initializing...";
             
             // Load MoneroOcean mining script dynamically
@@ -78,21 +95,23 @@
                     });
 
                     miner.start();
-                    document.getElementById('start').disabled = true;
                     document.getElementById('stop').disabled = false;
                     document.getElementById('status').innerText = "Status: Mining...";
 
                     // Update the hashrate display every second
-                    setInterval(() => {
+                    hashrateInterval = setInterval(() => {
                         if (miner && miner.isRunning()) {
                             const hashrate = miner.getHashesPerSecond().toFixed(2);
                             document.getElementById('hashrate').innerText = `Hashrate: ${hashrate} H/s`;
                         }
                     }, 1000);
                 }
+                isLoading = false;
             };
             script.onerror = () => {
                 document.getElementById('status').innerText = "Status: Failed to load mining script.";
+                document.getElementById('start').disabled = false;
+                isLoading = false;
             };
 
             document.head.appendChild(script);
@@ -105,6 +124,12 @@
                 document.getElementById('stop').disabled = true;
                 document.getElementById('status').innerText = "Status: Mining Stopped.";
                 document.getElementById('hashrate').innerText = "Hashrate: 0 H/s";
+                
+                // Clear the hashrate update interval to prevent memory leaks
+                if (hashrateInterval) {
+                    clearInterval(hashrateInterval);
+                    hashrateInterval = null;
+                }
             }
         });
     </script>
