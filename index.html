@@ -73,6 +73,13 @@
 
     .hud span { color: var(--accent); font-weight: 700; }
 
+    .hud small {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.72rem;
+      opacity: 0.86;
+    }
+
     .help {
       margin-top: 12px;
       text-align: center;
@@ -103,6 +110,31 @@
 
     .panel h2 { color: var(--accent); margin-top: 0; }
 
+    .config {
+      text-align: left;
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 0.86rem;
+    }
+
+    .config label { display: grid; gap: 4px; }
+
+    .config input {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid rgba(108, 255, 239, 0.2);
+      padding: 7px;
+      background: rgba(6, 10, 22, 0.92);
+      color: var(--text);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     button {
       margin-top: 10px;
       border: none;
@@ -127,13 +159,33 @@
     <div class="hud">
       Health: <span id="health">100</span><br />
       Score: <span id="score">0</span><br />
-      Wave: <span id="wave">1</span>
+      Wave: <span id="wave">1</span><br />
+      AI Plan: <span id="aiPlan">adaptive defense</span>
+      <small id="aiStatus">AI: local tactical model</small>
     </div>
 
     <div id="overlay" class="overlay">
       <div class="panel">
         <h2 id="overlayTitle">Defend the Rift</h2>
         <p id="overlayText">WASD / Arrow keys to move, mouse to look, Space to blast aliens. Survive as long as possible.</p>
+        <div class="config">
+          <div class="row">
+            <input type="checkbox" id="useCloudAi" />
+            <label for="useCloudAi">Use cloud AI director (optional)</label>
+          </div>
+          <label>
+            AI endpoint
+            <input id="aiEndpoint" placeholder="https://api.openai.com/v1/chat/completions" />
+          </label>
+          <label>
+            AI model
+            <input id="aiModel" placeholder="gpt-4o-mini" />
+          </label>
+          <label>
+            API key
+            <input id="aiApiKey" type="password" placeholder="sk-..." />
+          </label>
+        </div>
         <button id="startBtn">START MISSION</button>
       </div>
     </div>
@@ -152,7 +204,16 @@
     const ui = {
       health: document.getElementById('health'),
       score: document.getElementById('score'),
-      wave: document.getElementById('wave')
+      wave: document.getElementById('wave'),
+      aiPlan: document.getElementById('aiPlan'),
+      aiStatus: document.getElementById('aiStatus')
+    };
+
+    const aiControls = {
+      useCloudAi: document.getElementById('useCloudAi'),
+      endpoint: document.getElementById('aiEndpoint'),
+      model: document.getElementById('aiModel'),
+      apiKey: document.getElementById('aiApiKey')
     };
 
     const world = {
@@ -167,8 +228,40 @@
       keys: new Set(),
       time: 0,
       spawnTimer: 0,
-      maxSpawnRadius: 54
+      maxSpawnRadius: 54,
+      aiDirector: {
+        plan: 'adaptive defense',
+        aggression: 0.5,
+        strafeBias: 0.5,
+        retreatHealth: 0.26,
+        swarmSpread: 0.5,
+        status: 'local tactical model',
+        cloudEnabled: false,
+        endpoint: '',
+        model: 'gpt-4o-mini',
+        apiKey: '',
+        lastDecisionAt: 0,
+        pending: false
+      }
     };
+
+    function loadAiConfig() {
+      aiControls.useCloudAi.checked = localStorage.getItem('alienRift.useCloudAi') === '1';
+      aiControls.endpoint.value = localStorage.getItem('alienRift.endpoint') || 'https://api.openai.com/v1/chat/completions';
+      aiControls.model.value = localStorage.getItem('alienRift.model') || 'gpt-4o-mini';
+      aiControls.apiKey.value = localStorage.getItem('alienRift.apiKey') || '';
+    }
+
+    function syncAiConfigFromForm() {
+      world.aiDirector.cloudEnabled = aiControls.useCloudAi.checked;
+      world.aiDirector.endpoint = aiControls.endpoint.value.trim();
+      world.aiDirector.model = aiControls.model.value.trim() || 'gpt-4o-mini';
+      world.aiDirector.apiKey = aiControls.apiKey.value.trim();
+      localStorage.setItem('alienRift.useCloudAi', world.aiDirector.cloudEnabled ? '1' : '0');
+      localStorage.setItem('alienRift.endpoint', world.aiDirector.endpoint);
+      localStorage.setItem('alienRift.model', world.aiDirector.model);
+      localStorage.setItem('alienRift.apiKey', world.aiDirector.apiKey);
+    }
 
     for (let i = 0; i < 180; i++) {
       world.stars.push({
@@ -191,6 +284,10 @@
       world.time = 0;
       world.spawnTimer = 0;
       world.cooldown = 0;
+      world.aiDirector.plan = 'adaptive defense';
+      world.aiDirector.status = world.aiDirector.cloudEnabled ? 'cloud model ready' : 'local tactical model';
+      world.aiDirector.lastDecisionAt = 0;
+      world.aiDirector.pending = false;
       updateHud();
     }
 
@@ -198,6 +295,8 @@
       ui.health.textContent = Math.max(0, Math.round(world.player.health));
       ui.score.textContent = world.score;
       ui.wave.textContent = world.wave;
+      ui.aiPlan.textContent = world.aiDirector.plan;
+      ui.aiStatus.textContent = `AI: ${world.aiDirector.status}`;
       ui.health.style.color = world.player.health <= 30 ? '#ff4d7a' : '#6cffef';
     }
 
@@ -212,7 +311,74 @@
         size,
         speed: 1.3 + Math.random() * 0.9 + world.wave * 0.08,
         hp: 1 + Math.floor(world.wave / 3),
-        bob: Math.random() * Math.PI * 2
+        bob: Math.random() * Math.PI * 2,
+        heading: Math.random() * Math.PI * 2,
+        decisionTimer: Math.random() * 1.2,
+        state: 'seek',
+        fireCooldown: 0.4 + Math.random() * 0.7,
+        bravery: 0.35 + Math.random() * 0.55
+      });
+    }
+
+    async function requestCloudDecision() {
+      const ai = world.aiDirector;
+      if (!ai.cloudEnabled || !ai.endpoint || !ai.apiKey || ai.pending) return;
+      ai.pending = true;
+      ai.status = 'thinking...';
+      try {
+        const response = await fetch(ai.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${ai.apiKey}`
+          },
+          body: JSON.stringify({
+            model: ai.model,
+            messages: [
+              { role: 'system', content: 'Return strict JSON with keys: plan, aggression, strafeBias, retreatHealth, swarmSpread. Values in [0,1] except plan short text.' },
+              {
+                role: 'user',
+                content: `Wave=${world.wave}, health=${Math.round(world.player.health)}, score=${world.score}, aliens=${world.aliens.length}`
+              }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.3
+          })
+        });
+        if (!response.ok) throw new Error('bad response');
+        const data = await response.json();
+        const raw = data.choices?.[0]?.message?.content || '{}';
+        const parsed = JSON.parse(raw);
+        applyAiDecision(parsed, true);
+        ai.status = 'cloud tactical stream';
+      } catch (_error) {
+        ai.status = 'cloud unavailable, using local model';
+      } finally {
+        ai.pending = false;
+        updateHud();
+      }
+    }
+
+    function applyAiDecision(decision, fromCloud = false) {
+      const ai = world.aiDirector;
+      if (decision.plan) ai.plan = String(decision.plan).slice(0, 36);
+      for (const [key, fallback] of Object.entries({ aggression: 0.5, strafeBias: 0.5, retreatHealth: 0.26, swarmSpread: 0.5 })) {
+        const value = Number(decision[key]);
+        if (Number.isFinite(value)) ai[key] = Math.max(0, Math.min(1, value));
+        else ai[key] = ai[key] ?? fallback;
+      }
+      if (!fromCloud) ai.status = 'local tactical model';
+    }
+
+    function updateLocalDirector() {
+      const pressure = Math.min(1, world.aliens.length / (10 + world.wave));
+      const hpRisk = 1 - Math.max(0, Math.min(1, world.player.health / 100));
+      applyAiDecision({
+        plan: hpRisk > 0.55 ? 'fallback and kite' : pressure > 0.62 ? 'contain the swarm' : 'adaptive defense',
+        aggression: 0.42 + world.wave * 0.03 - hpRisk * 0.25,
+        strafeBias: 0.35 + pressure * 0.42,
+        retreatHealth: 0.2 + hpRisk * 0.35,
+        swarmSpread: 0.35 + pressure * 0.5
       });
     }
 
@@ -250,6 +416,11 @@
       }
 
       world.spawnTimer -= dt;
+      if (world.time - world.aiDirector.lastDecisionAt > 4.2) {
+        world.aiDirector.lastDecisionAt = world.time;
+        updateLocalDirector();
+        requestCloudDecision();
+      }
       const desired = Math.min(8 + world.wave * 2, 28);
       if (world.spawnTimer <= 0 && world.aliens.length < desired) {
         spawnAlien();
@@ -262,11 +433,53 @@
         const dist = Math.hypot(dx, dz) || 0.001;
         alien.bob += dt * 4;
         alien.y = 1.2 + Math.sin(alien.bob) * 0.25;
-        alien.x += (dx / dist) * alien.speed * dt;
-        alien.z += (dz / dist) * alien.speed * dt;
+        alien.decisionTimer -= dt;
+        alien.fireCooldown -= dt;
+        if (alien.decisionTimer <= 0) {
+          const retreatThreshold = world.aiDirector.retreatHealth * (0.8 + (1 - alien.bravery) * 0.4) * 100;
+          if (world.player.health < retreatThreshold && dist < 9) alien.state = 'retreat';
+          else if (dist < 7 && Math.random() < world.aiDirector.strafeBias) alien.state = 'strafe';
+          else if (dist > 12 || Math.random() < world.aiDirector.aggression) alien.state = 'seek';
+          else alien.state = 'flank';
+          alien.decisionTimer = 0.4 + Math.random() * 1.1;
+        }
+
+        const spread = world.aiDirector.swarmSpread * 2.8;
+        let avoidX = 0;
+        let avoidZ = 0;
+        for (const other of world.aliens) {
+          if (other === alien) continue;
+          const ox = alien.x - other.x;
+          const oz = alien.z - other.z;
+          const od = Math.hypot(ox, oz) || 0.001;
+          if (od < 3 + spread) {
+            avoidX += (ox / od) * (1 - od / (3 + spread));
+            avoidZ += (oz / od) * (1 - od / (3 + spread));
+          }
+        }
+
+        let moveDirX = dx / dist;
+        let moveDirZ = dz / dist;
+        if (alien.state === 'strafe') {
+          moveDirX = -moveDirZ;
+          moveDirZ = dx / dist;
+        } else if (alien.state === 'retreat') {
+          moveDirX *= -1;
+          moveDirZ *= -1;
+        } else if (alien.state === 'flank') {
+          const flankDir = alien.heading > Math.PI ? -1 : 1;
+          moveDirX = (dx / dist) * 0.4 + (-moveDirZ * flankDir) * 0.7;
+          moveDirZ = (dz / dist) * 0.4 + (moveDirX * flankDir) * 0.7;
+        }
+
+        alien.x += (moveDirX + avoidX * 0.7) * alien.speed * dt;
+        alien.z += (moveDirZ + avoidZ * 0.7) * alien.speed * dt;
 
         if (dist < 1.5) {
           world.player.health -= dt * (6 + world.wave * 0.4);
+        } else if (dist < 13 && alien.fireCooldown <= 0 && world.wave >= 2) {
+          world.player.health -= dt * (0.7 + world.wave * 0.07);
+          alien.fireCooldown = 1.2 + Math.random() * 1.1;
         }
       }
 
@@ -432,6 +645,7 @@
     }
 
     startBtn.addEventListener('click', () => {
+      syncAiConfigFromForm();
       overlay.classList.add('hidden');
       resetGame();
       world.running = true;
@@ -466,6 +680,8 @@
     });
 
     resetGame();
+    loadAiConfig();
+    syncAiConfigFromForm();
     draw();
     gameLoop();
   </script>
