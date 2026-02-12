@@ -1,92 +1,348 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NeonVault • Trade the Future</title>
-
-  <!-- Tailwind CSS CDN -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galactic Leap NFT Exchange</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- RainbowKit + wagmi + viem CDNs -->
-  <script src="https://unpkg.com/@rainbow-me/rainbowkit@2.1.7/dist/rainbowkit.umd.js"></script>
-  <script src="https://unpkg.com/viem@2.21.1/dist/index.global.js"></script>
-  <script src="https://unpkg.com/@tanstack/react-query@5.59.0/dist/umd/index.production.min.js"></script>
-  <script src="https://unpkg.com/wagmi@2.12.17/dist/wagmi.umd.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
   <style>
-    :root {
-      --neon-cyan: #00f0ff;
-      --neon-magenta: #ff00aa;
-      --neon-purple: #bb00ff;
-      --neon-lime: #ccff00;
-      --neon-pink: #ff0099;
-      --bg-deep: #0a0a0f;
-    }
     body {
-      background: var(--bg-deep);
-      color: #a5f3fc;
-      margin: 0;
-      font-family: 'Segoe UI', system-ui, monospace;
-      overflow-x: hidden;
+      background: radial-gradient(circle at top, #1b2540 0%, #090d18 40%, #04050a 100%);
+      min-height: 100vh;
     }
-    .glow-cyan { text-shadow: 0 0 10px var(--neon-cyan), 0 0 25px var(--neon-cyan), 0 0 45px var(--neon-cyan); }
-    .glow-magenta { text-shadow: 0 0 10px var(--neon-magenta), 0 0 25px var(--neon-magenta); }
-    .neon-border { border: 1px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0,240,255,0.45); }
-    .gradient-text {
-      background: linear-gradient(90deg, #00f0ff, #bb00ff, #ff00aa, #ccff00);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .glass {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      backdrop-filter: blur(8px);
     }
-    .bg-grid {
-      background-image: 
-        linear-gradient(to right, rgba(0,240,255,0.07) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0,240,255,0.07) 1px, transparent 1px);
-      background-size: 60px 60px;
-    }
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(-2px, -2px); }
-      60% { transform: translate(2px, 2px); }
-      80% { transform: translate(2px, -2px); }
-      100% { transform: translate(0); }
-    }
-    .animate-glitch { animation: glitch 2.5s infinite; }
   </style>
 </head>
-<body class="bg-grid min-h-screen relative">
+<body class="text-slate-100">
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <header class="glass rounded-2xl p-5 md:p-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Galactic Leap NFT Exchange</h1>
+        <p class="text-slate-300">List, buy, and manage NFT trades with wallet integration + xAI assistant.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <button id="connectWalletBtn" class="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold">Connect Wallet</button>
+        <div class="text-sm text-slate-300">
+          <div><span class="font-semibold">Connected:</span> <span id="walletAddress">Not connected</span></div>
+          <div><span class="font-semibold">Owner Wallet:</span> <span id="ownerWallet">0x02f93c7547309ca50eeab446daebe8ce8e694cbb</span></div>
+        </div>
+      </div>
+    </header>
 
-  <div class="absolute inset-0 bg-gradient-to-br from-purple-950/50 via-cyan-950/40 to-black pointer-events-none"></div>
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      <article class="glass rounded-2xl p-5 lg:col-span-1">
+        <h2 class="text-xl font-bold mb-4">Create NFT Listing</h2>
+        <form id="listingForm" class="space-y-3">
+          <div>
+            <label class="block text-sm mb-1" for="nftName">NFT Name</label>
+            <input id="nftName" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700" placeholder="Nebula Dragon" required />
+          </div>
+          <div>
+            <label class="block text-sm mb-1" for="nftImage">Image URL</label>
+            <input id="nftImage" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700" placeholder="https://..." required />
+          </div>
+          <div>
+            <label class="block text-sm mb-1" for="nftDescription">Description</label>
+            <textarea id="nftDescription" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700" rows="3" placeholder="Legendary interstellar collectible" required></textarea>
+          </div>
+          <div>
+            <label class="block text-sm mb-1" for="nftPrice">Price (ETH)</label>
+            <input id="nftPrice" type="number" min="0.001" step="0.001" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700" placeholder="0.25" required />
+          </div>
+          <button class="w-full px-4 py-2 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-400 text-slate-900 font-semibold" type="submit">Publish Listing</button>
+        </form>
+      </article>
 
-  <!-- Header -->
-  <header class="relative z-30 p-6 md:p-10 flex flex-col md:flex-row justify-between items-center border-b border-cyan-900/70 backdrop-blur-lg">
-    <h1 class="text-5xl md:text-6xl font-black tracking-widest gradient-text glow-cyan animate-glitch">
-      NEONVAULT
-    </h1>
-    <div id="wallet-connect" class="mt-4 md:mt-0"></div>
-  </header>
+      <article class="glass rounded-2xl p-5 lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold">Marketplace Listings</h2>
+          <button id="seedDataBtn" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">Load Demo NFTs</button>
+        </div>
+        <div id="marketplaceGrid" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      </article>
+    </section>
 
-  <!-- Hero + Generator -->
-  <main class="relative z-20 max-w-7xl mx-auto px-6 py-16 md:py-24">
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <article class="glass rounded-2xl p-5">
+        <h2 class="text-xl font-bold mb-3">xAI Trading Assistant</h2>
+        <p class="text-slate-300 text-sm mb-3">Integrated with your provided xAI API key and request format.</p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm mb-1" for="assistantPrompt">Prompt</label>
+            <textarea id="assistantPrompt" rows="4" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700">Testing. Just say hi and hello world and nothing else.</textarea>
+          </div>
+          <div class="flex gap-2">
+            <button id="runAssistantBtn" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">Run xAI Request</button>
+            <button id="runTestCurlBtn" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Run Exact Test Request</button>
+          </div>
+          <pre id="assistantOutput" class="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs overflow-auto min-h-[120px]">No response yet.</pre>
+        </div>
+      </article>
 
-    <div class="text-center mb-20">
-      <h2 class="text-5xl md:text-7xl font-extrabold mb-6 gradient-text glow-cyan animate-glitch">
-        Trade the Future
-      </h2>
-      <p class="text-xl md:text-2xl text-cyan-200 max-w-4xl mx-auto">
-        Holographic NFTs • AI creation • 0.75% ultra-low fees • Next-gen marketplace
-      </p>
-    </div>
+      <article class="glass rounded-2xl p-5">
+        <h2 class="text-xl font-bold mb-3">Activity Log</h2>
+        <ul id="activityLog" class="text-sm space-y-2 max-h-[320px] overflow-auto"></ul>
+      </article>
+    </section>
+  </div>
 
-    <!-- NFT Idea Generator -->
-    <section class="mb-24">
-      <h3 class="text-4xl md:text-5xl font-bold text-center mb-10 gradient-text">Create Your Cyberpunk NFT</h3>
+  <script>
+    const OWNER_WALLET = "0x02f93c7547309ca50eeab446daebe8ce8e694cbb";
+    const XAI_API_KEY = "xai-uCuy7IJlbAsLnoJiugGUCEp0BFwbKhDmo2VPVPF3aq2egFUuzxVEPjY72KOWPAkbJ0wotz2kFQ6c7jLJ";
+    const XAI_ENDPOINT = "https://api.x.ai/v1/chat/completions";
+    const STORAGE_KEY = "galactic-leap-marketplace";
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
-        <button data-prompt="cyberpunk ronin with glowing plasma katana and reflective chrome armor" class="generator-btn px-5 py-5 bg-gradient-to-br from-cyan-900/70 to-purple-900/70 hover:from-cyan-600 hover:to-purple-600 rounded-xl neon-border text-cyan-100 font-semibold transition-all hover:scale-105">Ronin</button>
-        <button data-prompt="neon glitch hacker girl with holographic visor and circuit skin" class="generator-btn px-5 py-5 bg-gradient-to-br from-magenta-900/70 to-purple-900/70 hover:from-magenta-600 hover:to-purple-600 rounded-xl neon-border text-magenta-100 font-semibold transition-all hover:scale-105">Hacker</button>
-        <button data-prompt="android cat with neon eyes in rainy cyber city alley" class="generator-btn px-5 py-5 bg-gradient-to-br from-lime-900/70 to-cyan-900/70 hover:from-lime-600 hover:to-cyan-600 rounded-xl neon-border text-lime-100 font-semibold transition-all hover:scale-105">Neon Cat</button>
-        <button data-prompt="cyberpunk speeder bike racer with burning neon trails" class="generator-btn px-5 py-5 bg-gradient-to-br from-purple-900/70 to-pink-900/70 hover:from-purple-600 hover:to-pink-600 rounded-xl neon-border text-purple-100 font-semibold transition-all hover:scale-105">Racer</button>
-        <button data-prompt="floating holographic ghost in digital void with glitch particles" class="generator-btn px-5 py-5 bg-gradient-to-br from-cyan-900/70 to-pink-900/70 hover:from-cyan-600 hover:to-pink-600 rounded-xl neon-border text-pink-100 font-semibold transition-all hover:scale-105">H
+    let connectedWallet = null;
+
+    const connectWalletBtn = document.getElementById("connectWalletBtn");
+    const walletAddressEl = document.getElementById("walletAddress");
+    const listingForm = document.getElementById("listingForm");
+    const marketplaceGrid = document.getElementById("marketplaceGrid");
+    const activityLog = document.getElementById("activityLog");
+    const seedDataBtn = document.getElementById("seedDataBtn");
+    const assistantOutput = document.getElementById("assistantOutput");
+    const runAssistantBtn = document.getElementById("runAssistantBtn");
+    const runTestCurlBtn = document.getElementById("runTestCurlBtn");
+
+    function logActivity(message) {
+      const li = document.createElement("li");
+      li.className = "border border-slate-700 rounded-lg px-3 py-2 bg-slate-900/60";
+      li.textContent = `${new Date().toLocaleTimeString()} — ${message}`;
+      activityLog.prepend(li);
+    }
+
+    function loadListings() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveListings(listings) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+    }
+
+    function shortenAddress(address) {
+      if (!address) return "";
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        alert("MetaMask (or compatible wallet) is required.");
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        connectedWallet = accounts[0];
+        walletAddressEl.textContent = `${shortenAddress(connectedWallet)} (${connectedWallet})`;
+        logActivity(`Wallet connected: ${connectedWallet}`);
+      } catch (error) {
+        logActivity(`Wallet connection failed: ${error.message}`);
+      }
+    }
+
+    function renderListings() {
+      const listings = loadListings();
+      marketplaceGrid.innerHTML = "";
+
+      if (listings.length === 0) {
+        marketplaceGrid.innerHTML = '<p class="text-slate-300">No NFTs listed yet. Add your first listing.</p>';
+        return;
+      }
+
+      listings.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "border border-slate-700 rounded-xl overflow-hidden bg-slate-900/70";
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" class="w-full h-44 object-cover" />
+          <div class="p-3 space-y-2">
+            <h3 class="font-semibold">${item.name}</h3>
+            <p class="text-sm text-slate-300">${item.description}</p>
+            <div class="text-sm"><span class="font-semibold">Price:</span> ${item.price} ETH</div>
+            <div class="text-xs text-slate-400">Seller: ${shortenAddress(item.seller)}</div>
+            <div class="flex gap-2">
+              <button data-buy="${item.id}" class="buy-btn flex-1 px-3 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-900 text-sm font-semibold">Buy</button>
+              <button data-remove="${item.id}" class="remove-btn flex-1 px-3 py-2 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-900 text-sm font-semibold">Delist</button>
+            </div>
+          </div>
+        `;
+        marketplaceGrid.appendChild(card);
+      });
+    }
+
+    async function handleBuy(id) {
+      const listings = loadListings();
+      const nft = listings.find((entry) => entry.id === id);
+      if (!nft) return;
+
+      if (!connectedWallet) {
+        alert("Connect wallet first.");
+        return;
+      }
+
+      if (!window.ethereum) {
+        alert("Wallet provider missing.");
+        return;
+      }
+
+      try {
+        const weiValue = ethers.parseEther(String(nft.price)).toString(16);
+        await window.ethereum.request({
+          method: "eth_sendTransaction",
+          params: [{
+            from: connectedWallet,
+            to: OWNER_WALLET,
+            value: `0x${weiValue}`,
+          }],
+        });
+
+        const updated = listings.filter((entry) => entry.id !== id);
+        saveListings(updated);
+        renderListings();
+        logActivity(`Purchased ${nft.name} for ${nft.price} ETH. Sent to ${OWNER_WALLET}.`);
+      } catch (error) {
+        logActivity(`Purchase failed: ${error.message}`);
+      }
+    }
+
+    function handleDelist(id) {
+      const listings = loadListings();
+      const nft = listings.find((entry) => entry.id === id);
+      if (!nft) return;
+      if (!connectedWallet || connectedWallet.toLowerCase() !== nft.seller.toLowerCase()) {
+        alert("Only the original seller can delist this NFT.");
+        return;
+      }
+      const updated = listings.filter((entry) => entry.id !== id);
+      saveListings(updated);
+      renderListings();
+      logActivity(`Delisted ${nft.name}.`);
+    }
+
+    listingForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!connectedWallet) {
+        alert("Connect wallet before listing NFTs.");
+        return;
+      }
+
+      const name = document.getElementById("nftName").value.trim();
+      const image = document.getElementById("nftImage").value.trim();
+      const description = document.getElementById("nftDescription").value.trim();
+      const price = document.getElementById("nftPrice").value.trim();
+
+      const newListing = {
+        id: crypto.randomUUID(),
+        name,
+        image,
+        description,
+        price,
+        seller: connectedWallet,
+      };
+
+      const listings = loadListings();
+      listings.unshift(newListing);
+      saveListings(listings);
+      renderListings();
+      listingForm.reset();
+      logActivity(`Listed ${name} for ${price} ETH by ${connectedWallet}.`);
+    });
+
+    marketplaceGrid.addEventListener("click", (event) => {
+      const buyId = event.target.getAttribute("data-buy");
+      const removeId = event.target.getAttribute("data-remove");
+      if (buyId) handleBuy(buyId);
+      if (removeId) handleDelist(removeId);
+    });
+
+    seedDataBtn.addEventListener("click", () => {
+      const seeded = [
+        {
+          id: crypto.randomUUID(),
+          name: "Warp Tiger #1",
+          description: "Hyper-speed cosmic feline from Sector-9.",
+          image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=1200&q=80",
+          price: "0.20",
+          seller: OWNER_WALLET,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "Quantum Ape #88",
+          description: "An ape blinking between dimensions.",
+          image: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=1200&q=80",
+          price: "0.45",
+          seller: OWNER_WALLET,
+        },
+      ];
+      saveListings(seeded);
+      renderListings();
+      logActivity("Loaded demo NFT inventory.");
+    });
+
+    async function callXai(userPrompt) {
+      const payload = {
+        messages: [
+          { role: "system", content: "You are a test assistant." },
+          { role: "user", content: userPrompt }
+        ],
+        model: "grok-4-latest",
+        stream: false,
+        temperature: 0,
+      };
+
+      const response = await fetch(XAI_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${XAI_API_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`xAI API error ${response.status}: ${errorText}`);
+      }
+
+      return response.json();
+    }
+
+    runAssistantBtn.addEventListener("click", async () => {
+      const prompt = document.getElementById("assistantPrompt").value;
+      assistantOutput.textContent = "Calling xAI...";
+      try {
+        const result = await callXai(prompt);
+        assistantOutput.textContent = JSON.stringify(result, null, 2);
+        logActivity("xAI assistant request completed.");
+      } catch (error) {
+        assistantOutput.textContent = error.message;
+        logActivity(`xAI assistant failed: ${error.message}`);
+      }
+    });
+
+    runTestCurlBtn.addEventListener("click", async () => {
+      assistantOutput.textContent = "Running exact curl-equivalent request...";
+      try {
+        const result = await callXai("Testing. Just say hi and hello world and nothing else.");
+        assistantOutput.textContent = JSON.stringify(result, null, 2);
+        logActivity("Exact test request finished.");
+      } catch (error) {
+        assistantOutput.textContent = error.message;
+        logActivity(`Exact test request failed: ${error.message}`);
+      }
+    });
+
+    connectWalletBtn.addEventListener("click", connectWallet);
+    renderListings();
+    logActivity("Marketplace initialized.");
+  </script>
+</body>
+</html>
