@@ -1,138 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>InfinityNode One-File Blockchain</title>
-    <style>
-        :root { --glow: #00ecff; --bg: #050505; }
-        body { background: var(--bg); color: #888; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .terminal { background: #111; border: 1px solid #222; width: 100%; max-width: 800px; padding: 30px; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
-        h1 { color: var(--glow); text-align: center; letter-spacing: 3px; font-weight: 300; }
-        .box { background: #000; border-left: 3px solid var(--glow); padding: 15px; margin: 15px 0; font-family: monospace; font-size: 0.9em; overflow-wrap: break-word; }
-        input { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; color: white; margin-top: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; margin-top: 15px; border: none; cursor: pointer; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
-        .btn-mine { background: var(--glow); color: #000; }
-        .btn-gen { background: #333; color: #fff; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; text-align: center; }
-        .stat-val { display: block; color: var(--glow); font-size: 1.5em; font-weight: bold; }
-        #log { height: 120px; overflow-y: auto; background: #000; padding: 10px; margin-top: 20px; border: 1px solid #222; font-size: 0.8em; color: #555; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alien Rift 3D</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #030611;
+      --panel: rgba(12, 17, 33, 0.82);
+      --accent: #6cffef;
+      --danger: #ff4d7a;
+      --text: #e6f0ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 20%, #13254f 0%, transparent 35%),
+        radial-gradient(circle at 80% 10%, #3f1f5f 0%, transparent 32%),
+        var(--bg);
+      font-family: Inter, Segoe UI, sans-serif;
+      color: var(--text);
+    }
+
+    .shell {
+      width: min(980px, 96vw);
+      background: linear-gradient(140deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      border: 1px solid rgba(108, 255, 239, 0.28);
+      border-radius: 16px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45), inset 0 0 60px rgba(108, 255, 239, 0.08);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      text-align: center;
+      letter-spacing: 0.12em;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      color: var(--accent);
+      text-shadow: 0 0 14px rgba(108, 255, 239, 0.6);
+    }
+
+    #game {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      background: #000;
+      border: 1px solid rgba(108, 255, 239, 0.2);
+      display: block;
+    }
+
+    .hud {
+      position: absolute;
+      top: 56px;
+      left: 28px;
+      background: var(--panel);
+      border: 1px solid rgba(108, 255, 239, 0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      backdrop-filter: blur(3px);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .hud span { color: var(--accent); font-weight: 700; }
+
+    .help {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.38);
+      border-radius: 16px;
+      text-align: center;
+      padding: 12px;
+      transition: opacity 250ms ease;
+    }
+
+    .panel {
+      background: rgba(8, 11, 24, 0.94);
+      border: 1px solid rgba(108, 255, 239, 0.34);
+      border-radius: 14px;
+      max-width: 420px;
+      padding: 20px;
+      box-shadow: 0 0 35px rgba(108, 255, 239, 0.16);
+    }
+
+    .panel h2 { color: var(--accent); margin-top: 0; }
+
+    button {
+      margin-top: 10px;
+      border: none;
+      background: linear-gradient(90deg, #66f5ff, #8d7dff);
+      color: #020916;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+    }
+
+    .danger { color: var(--danger); font-weight: 700; }
+    .hidden { opacity: 0; pointer-events: none; }
+  </style>
 </head>
 <body>
+  <div class="shell">
+    <h1>ALIEN RIFT 3D</h1>
+    <canvas id="game" width="960" height="540" aria-label="Alien Rift game viewport"></canvas>
 
-<div class="terminal">
-    <h1>INFINITY-CHAIN v1.0</h1>
-
-    <button class="btn-gen" onclick="generateWallet()">1. GENERATE NEW GLOBAL IDENTITY</button>
-    
-    <div id="walletArea" style="display:none">
-        <div class="box"><strong>PUBLIC ADDRESS:</strong><br><span id="pub"></span></div>
-        <div class="box" style="border-color: #ff3e3e"><strong>PRIVATE KEY:</strong><br><span id="priv"></span></div>
+    <div class="hud">
+      Health: <span id="health">100</span><br />
+      Score: <span id="score">0</span><br />
+      Wave: <span id="wave">1</span>
     </div>
 
-    <input type="text" id="target" placeholder="Paste Public Address Here">
-    <button class="btn-mine" id="mineBtn" onclick="toggleMining()">2. LAUNCH MINING ENGINE</button>
-
-    <div class="stats">
-        <div><span class="stat-val" id="balance">0</span>Balance</div>
-        <div><span class="stat-val" id="blocks">0</span>Blocks Found</div>
-        <div><span class="stat-val" id="hashrate">0</span>H/s</div>
+    <div id="overlay" class="overlay">
+      <div class="panel">
+        <h2 id="overlayTitle">Defend the Rift</h2>
+        <p id="overlayText">WASD / Arrow keys to move, mouse to look, Space to blast aliens. Survive as long as possible.</p>
+        <button id="startBtn">START MISSION</button>
+      </div>
     </div>
 
-    <div id="log">> System initialized. Waiting for command...</div>
-</div>
+    <div class="help">Tip: click inside the game for pointer lock aiming.</div>
+  </div>
 
-<script id="worker-code" type="javascript/worker">
-    self.onmessage = async function(e) {
-        const { wallet, difficulty } = e.data;
-        let nonce = 0;
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+    const startBtn = document.getElementById('startBtn');
 
-        async function sha256(str) {
-            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-            return Array.prototype.map.call(new Uint8Array(buf), x => (('00' + x.toString(16)).slice(-2))).join('');
-        }
-
-        while (true) {
-            nonce++;
-            const hash = await sha256(wallet + nonce);
-            if (hash.startsWith('0'.repeat(difficulty))) {
-                self.postMessage({ type: 'SUCCESS', hash, nonce });
-            }
-            if (nonce % 2000 === 0) self.postMessage({ type: 'TICK' });
-        }
+    const ui = {
+      health: document.getElementById('health'),
+      score: document.getElementById('score'),
+      wave: document.getElementById('wave')
     };
-</script>
 
-<script>
-    let isMining = false;
-    let worker;
-    let hashes = 0;
-    let start;
+    const world = {
+      player: { x: 0, y: 1.6, z: 0, yaw: 0, speed: 8, health: 100 },
+      aliens: [],
+      blasts: [],
+      stars: [],
+      score: 0,
+      wave: 1,
+      running: false,
+      cooldown: 0,
+      keys: new Set(),
+      time: 0,
+      spawnTimer: 0,
+      maxSpawnRadius: 54
+    };
 
-    function log(msg) {
-        const l = document.getElementById('log');
-        l.innerHTML += `<div>> ${msg}</div>`;
-        l.scrollTop = l.scrollHeight;
+    for (let i = 0; i < 180; i++) {
+      world.stars.push({
+        x: (Math.random() - 0.5) * 200,
+        y: 20 + Math.random() * 110,
+        z: 20 + Math.random() * 220,
+        r: Math.random() * 1.8 + 0.3
+      });
     }
 
-    async function generateWallet() {
-        const entropy = window.crypto.getRandomValues(new Uint8Array(32));
-        const priv = Array.from(entropy, b => b.toString(16).padStart(2, '0')).join('');
-        const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(priv));
-        const pub = "INF_" + Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 20);
-        
-        document.getElementById('pub').innerText = pub;
-        document.getElementById('priv').innerText = priv;
-        document.getElementById('target').value = pub;
-        document.getElementById('walletArea').style.display = 'block';
-        log("Identity encrypted and stored in local memory.");
+    function resetGame() {
+      world.player.x = 0;
+      world.player.z = 0;
+      world.player.yaw = 0;
+      world.player.health = 100;
+      world.aliens = [];
+      world.blasts = [];
+      world.score = 0;
+      world.wave = 1;
+      world.time = 0;
+      world.spawnTimer = 0;
+      world.cooldown = 0;
+      updateHud();
     }
 
-    function toggleMining() {
-        const wallet = document.getElementById('target').value;
-        const btn = document.getElementById('mineBtn');
-        if (!wallet) return alert("Enter address!");
+    function updateHud() {
+      ui.health.textContent = Math.max(0, Math.round(world.player.health));
+      ui.score.textContent = world.score;
+      ui.wave.textContent = world.wave;
+      ui.health.style.color = world.player.health <= 30 ? '#ff4d7a' : '#6cffef';
+    }
 
-        if (!isMining) {
-            isMining = true;
-            btn.innerText = "SHUTDOWN ENGINE";
-            btn.style.background = "#ff3e3e";
-            start = Date.now();
-            
-            const blob = new Blob([document.getElementById('worker-code').textContent], {type: 'text/javascript'});
-            worker = new Worker(window.URL.createObjectURL(blob));
-            
-            worker.onmessage = (e) => {
-                if (e.data.type === 'SUCCESS') {
-                    document.getElementById('blocks').innerText = parseInt(document.getElementById('blocks').innerText) + 1;
-                    log(`BLOCK FOUND: ${e.data.hash.substring(0,16)}...`);
-                    saveToCloud(wallet, e.data.hash);
-                } else {
-                    hashes += 2000;
-                    document.getElementById('hashrate').innerText = Math.floor(hashes / ((Date.now() - start)/1000));
-                }
-            };
-            worker.postMessage({ wallet, difficulty: 4 });
-            log("Mining engine engaged.");
-        } else {
-            isMining = false;
-            worker.terminate();
-            btn.innerText = "LAUNCH MINING ENGINE";
-            btn.style.background = "#00ecff";
-            log("Engine offline.");
+    function spawnAlien() {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 24 + Math.random() * world.maxSpawnRadius;
+      const size = 0.8 + Math.random() * 1.4;
+      world.aliens.push({
+        x: world.player.x + Math.cos(angle) * radius,
+        y: 1.2 + Math.random() * 0.8,
+        z: world.player.z + Math.sin(angle) * radius,
+        size,
+        speed: 1.3 + Math.random() * 0.9 + world.wave * 0.08,
+        hp: 1 + Math.floor(world.wave / 3),
+        bob: Math.random() * Math.PI * 2
+      });
+    }
+
+    function fireBlast() {
+      if (world.cooldown > 0) return;
+      world.cooldown = 0.23;
+      const dirX = Math.sin(world.player.yaw);
+      const dirZ = Math.cos(world.player.yaw);
+      world.blasts.push({
+        x: world.player.x + dirX * 1,
+        y: 1.5,
+        z: world.player.z + dirZ * 1,
+        vx: dirX * 38,
+        vz: dirZ * 38,
+        life: 1.1
+      });
+    }
+
+    function update(dt) {
+      if (!world.running) return;
+      world.time += dt;
+      world.cooldown = Math.max(0, world.cooldown - dt);
+
+      const moveX = (world.keys.has('d') || world.keys.has('arrowright') ? 1 : 0) - (world.keys.has('a') || world.keys.has('arrowleft') ? 1 : 0);
+      const moveZ = (world.keys.has('w') || world.keys.has('arrowup') ? 1 : 0) - (world.keys.has('s') || world.keys.has('arrowdown') ? 1 : 0);
+
+      if (moveX || moveZ) {
+        const len = Math.hypot(moveX, moveZ) || 1;
+        const localX = moveX / len;
+        const localZ = moveZ / len;
+        const sin = Math.sin(world.player.yaw);
+        const cos = Math.cos(world.player.yaw);
+        world.player.x += (localX * cos + localZ * sin) * dt * world.player.speed;
+        world.player.z += (localZ * cos - localX * sin) * dt * world.player.speed;
+      }
+
+      world.spawnTimer -= dt;
+      const desired = Math.min(8 + world.wave * 2, 28);
+      if (world.spawnTimer <= 0 && world.aliens.length < desired) {
+        spawnAlien();
+        world.spawnTimer = Math.max(0.2, 1.2 - world.wave * 0.05);
+      }
+
+      for (const alien of world.aliens) {
+        const dx = world.player.x - alien.x;
+        const dz = world.player.z - alien.z;
+        const dist = Math.hypot(dx, dz) || 0.001;
+        alien.bob += dt * 4;
+        alien.y = 1.2 + Math.sin(alien.bob) * 0.25;
+        alien.x += (dx / dist) * alien.speed * dt;
+        alien.z += (dz / dist) * alien.speed * dt;
+
+        if (dist < 1.5) {
+          world.player.health -= dt * (6 + world.wave * 0.4);
         }
+      }
+
+      for (let i = world.blasts.length - 1; i >= 0; i--) {
+        const b = world.blasts[i];
+        b.life -= dt;
+        b.x += b.vx * dt;
+        b.z += b.vz * dt;
+        if (b.life <= 0) {
+          world.blasts.splice(i, 1);
+          continue;
+        }
+
+        for (let j = world.aliens.length - 1; j >= 0; j--) {
+          const a = world.aliens[j];
+          const hit = Math.hypot(a.x - b.x, a.z - b.z) < (a.size * 0.7 + 0.55);
+          if (hit) {
+            a.hp -= 1;
+            world.blasts.splice(i, 1);
+            if (a.hp <= 0) {
+              world.aliens.splice(j, 1);
+              world.score += 10;
+              if (world.score % 120 === 0) world.wave += 1;
+            }
+            break;
+          }
+        }
+      }
+
+      if (world.player.health <= 0) {
+        endGame();
+      }
+
+      updateHud();
     }
 
-    // This is the "Legit" part: Saving to a public record
-    function saveToCloud(wallet, hash) {
-        // In a real crypto, this would be a POST to a P2P node.
-        // For a one-file HTML, we simulate the ledger update.
-        let balance = parseInt(document.getElementById('balance').innerText);
-        document.getElementById('balance').innerText = balance + 10;
-        
-        // OPTIONAL: Integrate a service like jsonbin.io here to make it global
-        log("Block recorded to local ledger.");
+    function projectPoint(x, y, z) {
+      const dx = x - world.player.x;
+      const dy = y - world.player.y;
+      const dz = z - world.player.z;
+      const sin = Math.sin(-world.player.yaw);
+      const cos = Math.cos(-world.player.yaw);
+      const rx = dx * cos - dz * sin;
+      const rz = dx * sin + dz * cos;
+      if (rz <= 0.3) return null;
+      const f = 620 / rz;
+      return {
+        x: canvas.width / 2 + rx * f,
+        y: canvas.height / 2 - dy * f,
+        scale: f,
+        depth: rz
+      };
     }
-</script>
+
+    function draw() {
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, '#020714');
+      grad.addColorStop(0.7, '#0d1329');
+      grad.addColorStop(1, '#05070f');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (const s of world.stars) {
+        const p = projectPoint(s.x, s.y, world.player.z + s.z);
+        if (!p) continue;
+        const alpha = Math.min(1, 170 / p.depth);
+        ctx.fillStyle = `rgba(200,240,255,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, s.r * (p.scale * 0.007), 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = 'rgba(108,255,239,0.13)';
+      ctx.lineWidth = 1;
+      for (let i = -18; i <= 18; i++) {
+        drawGroundLine(i, -60, i, 60);
+        drawGroundLine(-60, i, 60, i);
+      }
+
+      const renderables = [];
+
+      for (const alien of world.aliens) {
+        const p = projectPoint(alien.x, alien.y, alien.z);
+        if (!p) continue;
+        renderables.push({ type: 'alien', p, alien });
+      }
+
+      for (const b of world.blasts) {
+        const p = projectPoint(b.x, b.y, b.z);
+        if (!p) continue;
+        renderables.push({ type: 'blast', p, blast: b });
+      }
+
+      renderables.sort((a, b) => b.p.depth - a.p.depth);
+
+      for (const r of renderables) {
+        if (r.type === 'alien') {
+          const sizePx = r.alien.size * r.p.scale;
+          const glow = Math.min(0.9, 2 / r.p.depth);
+          ctx.fillStyle = `rgba(118,255,163,${0.4 + glow * 0.45})`;
+          ctx.beginPath();
+          ctx.ellipse(r.p.x, r.p.y - sizePx * 0.25, sizePx * 0.5, sizePx * 0.68, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = 'rgba(40,255,120,0.7)';
+          ctx.beginPath();
+          ctx.arc(r.p.x - sizePx * 0.15, r.p.y - sizePx * 0.3, Math.max(2, sizePx * 0.07), 0, Math.PI * 2);
+          ctx.arc(r.p.x + sizePx * 0.15, r.p.y - sizePx * 0.3, Math.max(2, sizePx * 0.07), 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const size = Math.max(2, r.p.scale * 0.08);
+          ctx.fillStyle = 'rgba(170,240,255,0.95)';
+          ctx.beginPath();
+          ctx.arc(r.p.x, r.p.y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      drawCrosshair();
+    }
+
+    function drawGroundLine(x1, z1, x2, z2) {
+      const p1 = projectPoint(x1, 0, z1);
+      const p2 = projectPoint(x2, 0, z2);
+      if (!p1 || !p2) return;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+
+    function drawCrosshair() {
+      ctx.strokeStyle = 'rgba(190,255,249,0.9)';
+      ctx.lineWidth = 1.5;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, cy);
+      ctx.lineTo(cx + 10, cy);
+      ctx.moveTo(cx, cy - 10);
+      ctx.lineTo(cx, cy + 10);
+      ctx.stroke();
+    }
+
+    function endGame() {
+      world.running = false;
+      document.exitPointerLock?.();
+      overlayTitle.textContent = 'Mission Failed';
+      overlayText.innerHTML = `You scored <span class="danger">${world.score}</span> points and reached wave ${world.wave}.`;
+      startBtn.textContent = 'RETRY';
+      overlay.classList.remove('hidden');
+    }
+
+    function gameLoop(last = performance.now()) {
+      const tick = (now) => {
+        const dt = Math.min(0.032, (now - last) / 1000);
+        last = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    startBtn.addEventListener('click', () => {
+      overlay.classList.add('hidden');
+      resetGame();
+      world.running = true;
+      canvas.requestPointerLock?.();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      world.keys.add(key);
+      if (key === ' ' && world.running) {
+        e.preventDefault();
+        fireBlast();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      world.keys.delete(e.key.toLowerCase());
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (document.pointerLockElement === canvas && world.running) {
+        world.player.yaw += e.movementX * 0.0028;
+      }
+    });
+
+    canvas.addEventListener('click', () => {
+      if (world.running) canvas.requestPointerLock?.();
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 0 && world.running) fireBlast();
+    });
+
+    resetGame();
+    draw();
+    gameLoop();
+  </script>
 </body>
 </html>
