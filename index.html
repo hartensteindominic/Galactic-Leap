@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentLens | Advanced AI Product Review Agents</title>
+    <meta
+      name="description"
+      content="AgentLens helps teams and shoppers review products with specialized AI agents, visual insights, and confidence scoring."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="orb orb-one"></div>
+    <div class="orb orb-two"></div>
+    <header class="site-header">
+      <nav class="nav container">
+        <a class="logo" href="#">Agent<span>Lens</span></a>
+        <div class="nav-actions">
+          <a href="#features" class="btn ghost">Explore</a>
+          <a href="#demo" class="btn primary">Start Reviewing</a>
+        </div>
+      </nav>
+      <section class="hero container">
+        <div class="hero-copy">
+          <p class="eyebrow">Advanced AI Agents for Smarter Buying</p>
+          <h1>Review products with a team of intelligent AI agents.</h1>
+          <p>
+            AgentLens combines sentiment analysis, feature extraction, trust detection,
+            and visual scoring so people can evaluate products faster with confidence.
+          </p>
+          <div class="hero-ctas">
+            <a class="btn primary" href="#demo">Run a Product Review</a>
+            <a class="btn secondary" href="#how-it-works">How It Works</a>
+          </div>
+          <ul class="hero-metrics">
+            <li><strong>4.8x</strong><span>Faster review analysis</span></li>
+            <li><strong>93%</strong><span>Insight relevance score</span></li>
+            <li><strong>24/7</strong><span>Agent availability</span></li>
+          </ul>
+        </div>
+        <div class="hero-card">
+          <h2>Live Multi-Agent Summary</h2>
+          <div class="agent-result">
+            <span>Sentiment Agent</span>
+            <p>Most users love battery life and build quality, but mention setup friction.</p>
+          </div>
+          <div class="agent-result">
+            <span>Trust Agent</span>
+            <p>8 potentially low-confidence reviews flagged for repetitive language.</p>
+          </div>
+          <div class="agent-result">
+            <span>Value Agent</span>
+            <p>Top pick for daily professionals. 9.2/10 value-to-price fit.</p>
+          </div>
+        </div>
+      </section>
+    </header>
+
+    <main>
+      <section id="features" class="container section">
+        <div class="section-title">
+          <p class="eyebrow">Built for product research</p>
+          <h2>Specialized AI agents that think from every angle</h2>
+        </div>
+        <div class="features-grid">
+          <article class="feature-card">
+            <h3>Sentiment Intelligence</h3>
+            <p>Understands nuanced opinions across thousands of reviews instantly.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Visual Pattern Detection</h3>
+            <p>Transforms data into interactive charts, heatmaps, and confidence bars.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Fraud & Bias Guard</h3>
+            <p>Flags suspicious language clusters and detects low-trust review behavior.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Persona Recommendations</h3>
+            <p>Shows best products by lifestyle, budget, and use-case persona.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="section darker">
+        <div class="container workflow">
+          <div>
+            <p class="eyebrow">Workflow</p>
+            <h2>From raw reviews to clear decisions in minutes</h2>
+          </div>
+          <ol>
+            <li><strong>1.</strong> Upload review links or product data sources.</li>
+            <li><strong>2.</strong> Agent squad analyzes sentiment, trust, and product fit.</li>
+            <li><strong>3.</strong> Get a visual scorecard and personalized recommendation.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="demo" class="container section demo">
+        <div class="section-title">
+          <p class="eyebrow">Interactive demo</p>
+          <h2>Try a quick product review simulation</h2>
+        </div>
+        <form id="review-form" class="demo-form">
+          <label>
+            Product name
+            <input id="product" type="text" placeholder="Noise-Canceling Headphones" required />
+          </label>
+          <label>
+            Price
+            <input id="price" type="number" placeholder="299" min="1" required />
+          </label>
+          <button type="submit" class="btn primary">Generate AI Review</button>
+        </form>
+        <div id="result" class="result-panel" aria-live="polite">
+          Enter a product and price to see a sample AI multi-agent summary.
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span id="year"></span> AgentLens. Make every purchase decision with confidence.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
