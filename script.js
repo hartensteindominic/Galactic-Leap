@@ -1,51 +1,72 @@
-const form = document.getElementById('review-form');
-const result = document.getElementById('result');
 const year = document.getElementById('year');
+const wakeButton = document.getElementById('wake-agent');
+const statusPanel = document.getElementById('agent-status');
+const missionForm = document.getElementById('mission-form');
+const missionOutput = document.getElementById('mission-output');
+const runtimeEl = document.getElementById('runtime');
+const taskRateEl = document.getElementById('task-rate');
+const learnScoreEl = document.getElementById('learn-score');
 
-year.textContent = new Date().getFullYear();
+year.textContent = String(new Date().getFullYear());
 
-const reviewSignals = {
-  positive: ['love', 'great', 'amazing', 'excellent', 'perfect', 'fast', 'reliable'],
-  concern: ['issue', 'problem', 'slow', 'hard', 'difficult', 'late', 'confusing', 'setup']
+let runtimeSeconds = 0;
+let tasksClosed = 18;
+let confidence = 87;
+
+const updateMetrics = () => {
+  runtimeSeconds += 1;
+  const minutes = String(Math.floor(runtimeSeconds / 60)).padStart(2, '0');
+  const seconds = String(runtimeSeconds % 60).padStart(2, '0');
+  runtimeEl.textContent = `${minutes}:${seconds}`;
+
+  if (runtimeSeconds % 12 === 0) {
+    tasksClosed += 1;
+    confidence = Math.min(99, confidence + 1);
+    taskRateEl.textContent = String(tasksClosed);
+    learnScoreEl.textContent = `${confidence}%`;
+  }
 };
 
-const hasSignal = (text, words) => words.some((word) => text.includes(word));
+setInterval(updateMetrics, 1000);
+taskRateEl.textContent = String(tasksClosed);
+learnScoreEl.textContent = `${confidence}%`;
 
-form.addEventListener('submit', (event) => {
+wakeButton.addEventListener('click', () => {
+  statusPanel.innerHTML = `
+    <h2>Agent status: <span>Fully autonomous</span></h2>
+    <p>Perception active · Planner generating options · Reflective learning engaged</p>
+  `;
+});
+
+missionForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const product = document.getElementById('product').value.trim();
-  const customer = document.getElementById('customer').value.trim();
-  const review = document.getElementById('review').value.trim();
-  const lowerReview = review.toLowerCase();
+  const mission = document.getElementById('mission').value.trim();
+  const risk = document.getElementById('risk-level').value;
 
-  const positiveTone = hasSignal(lowerReview, reviewSignals.positive);
-  const hasConcerns = hasSignal(lowerReview, reviewSignals.concern);
+  const strictness = {
+    low: 'Maximum guardrails; only low-risk actions approved.',
+    balanced: 'Adaptive guardrails; confidence and impact must align.',
+    high: 'Aggressive exploration; high-value opportunities prioritized.'
+  };
 
-  const empathyMessage = hasConcerns
-    ? `Thanks ${customer} — we appreciate your honest feedback on ${product}. Our team can guide you through setup and make this smooth right away.`
-    : `Thanks ${customer}! We're thrilled ${product} is delivering a great experience for you.`;
+  const confidenceScore = Math.min(
+    98,
+    Math.max(80, Math.floor(Math.random() * 15) + (risk === 'high' ? 82 : 85))
+  );
 
-  const trustMessage = hasConcerns
-    ? `${product} is protected by our support commitment, so if anything feels off we respond quickly with replacement or troubleshooting help.`
-    : `${product} is backed by verified quality checks and dependable support, so customers can buy with confidence.`;
-
-  const valueMessage = positiveTone
-    ? `Based on your review, ${product} is a strong value pick for customers who want dependable performance.`
-    : `Even with your note, ${product} remains a high-confidence choice for buyers who want feature depth and long-term support.`;
-
-  const salesSummary = hasConcerns
-    ? 'AI reassurance mode: concern detected, response focused on service and trust recovery.'
-    : 'AI reassurance mode: positive momentum detected, response focused on confidence and conversion.';
-
-  result.innerHTML = `
-    <strong>${product} • AI Response Suite</strong>
-    <p><em>Customer review:</em> “${review}”</p>
-    <ul class="response-list">
-      <li><strong>Empathy Agent:</strong> ${empathyMessage}</li>
-      <li><strong>Trust Agent:</strong> ${trustMessage}</li>
-      <li><strong>Value Agent:</strong> ${valueMessage}</li>
-    </ul>
-    <p><strong>${salesSummary}</strong></p>
+  missionOutput.innerHTML = `
+    <p>> Objective received: ${mission}</p>
+    <p>> Planning engine: generated 3 candidate strategies</p>
+    <p>> Self-approval policy: ${strictness[risk]}</p>
+    <p>> Approved route: Strategy B (highest expected utility)</p>
+    <p>> Reflective note: add retrieval memory on task completion to boost future precision.</p>
+    <p>> Learning confidence: ${confidenceScore}%</p>
+    <p>> Cycle complete ✔</p>
   `;
+
+  tasksClosed += 1;
+  confidence = Math.min(99, Math.round((confidence + confidenceScore) / 2));
+  taskRateEl.textContent = String(tasksClosed);
+  learnScoreEl.textContent = `${confidence}%`;
 });
