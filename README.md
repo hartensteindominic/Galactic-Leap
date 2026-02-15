@@ -1,45 +1,28 @@
-# Galactic-Leap Linux Agent Helper
+# AgentLens — Advanced AI Agents Product Review Website
 
-This repo provides a small Linux utility script to manage a Python-based AI agent service.
+This repository now includes a visually polished front-end website designed to help people review products using specialized AI agents.
 
-## Why your command failed
+## What it includes
 
-You ran:
+- A high-impact landing page with modern UI styling and gradients.
+- Product-review focused sections describing AI capabilities.
+- A small interactive demo that generates a sample multi-agent review summary.
+- Fully static files (`index.html`, `styles.css`, `script.js`) that can be hosted anywhere.
 
-```bash
-nano.app.py
-```
-
-That is treated as a single command name and fails.
-
-Use one of these instead:
+## Run locally
 
 ```bash
-nano app.py
-# or
-python3 app.py
+python3 -m http.server 4173
 ```
 
-## Quick start
+Then open `http://localhost:4173` in your browser.
+
+## Legacy helper script
+
+The existing Linux helper script for running a Python AI agent is still available:
 
 ```bash
 chmod +x agent_manager.sh
 ./agent_manager.sh start
 ./agent_manager.sh status
-./agent_manager.sh logs
-./agent_manager.sh edit
-./agent_manager.sh restart
-./agent_manager.sh stop
-```
-
-## Defaults used by the script
-
-- `APP_DIR=$HOME/ai-review-analyzer`
-- `VENV_DIR=$HOME/ai-agent-env`
-- `APP_FILE=app.py`
-
-You can override them:
-
-```bash
-APP_DIR=~/my-agent VENV_DIR=~/venvs/agent APP_FILE=main.py ./agent_manager.sh restart
 ```
