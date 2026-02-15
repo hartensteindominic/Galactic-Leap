@@ -1,12 +1,13 @@
-# AgentLens — Advanced AI Agents Product Review Website
+# AgentLens — Colorful AI Product Review Reassurance Experience
 
-This repository now includes a visually polished front-end website designed to help people review products using specialized AI agents.
+This repository includes a visually polished front-end website for product teams that want to turn customer reviews into trust-building AI conversations.
 
 ## What it includes
 
-- A high-impact landing page with modern UI styling and gradients.
-- Product-review focused sections describing AI capabilities.
-- A small interactive demo that generates a sample multi-agent review summary.
+- A high-impact, colorful landing page designed to be easy to present and sell.
+- Product review workflow messaging focused on reassurance and conversion.
+- An interactive demo where a customer submits a product-specific review.
+- Three AI response personas (Empathy, Trust, and Value) that comment and reassure buyers.
 - Fully static files (`index.html`, `styles.css`, `script.js`) that can be hosted anywhere.
 
 ## Run locally
