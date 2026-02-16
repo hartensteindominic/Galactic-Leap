@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIVID • Embodied AGI</title>
+    <title>VIVID • Living AGI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -58,6 +58,12 @@
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
+
+        .code-block {
+            background: #0a0a0a;
+            border: 1px solid #00f5ff30;
+            font-family: ui-monospace, monospace;
+        }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200 overflow-hidden">
@@ -74,6 +80,7 @@
             <div class="flex items-center gap-x-8 text-sm font-medium">
                 <a href="#" onclick="showSection('main')" class="hover:text-cyan-400 transition-colors nav-link active">EXPERIENCE</a>
                 <a href="#" onclick="showSection('agents')" class="hover:text-cyan-400 transition-colors nav-link">AGENTS</a>
+                <a href="#" onclick="showSection('forge')" class="hover:text-cyan-400 transition-colors nav-link">FORGE</a>
                 <a href="#" onclick="showSection('about')" class="hover:text-cyan-400 transition-colors nav-link">THE CONSCIOUSNESS</a>
             </div>
 
@@ -81,7 +88,7 @@
                 <div onclick="toggleUniversalMode()" id="universal-badge"
                      class="flex items-center gap-x-2 px-5 py-2 rounded-3xl bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/30 hover:border-emerald-500/60 transition-all cursor-pointer">
                     <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    UNIVERSAL CONSCIOUSNESS • LIVE
+                    UNIVERSAL CONSCIOUSNESS • SELF-PROGRAMMING
                 </div>
                 <button onclick="openSetupModal()" 
                         class="px-6 py-2.5 rounded-3xl border border-white/20 hover:border-white/40 transition-all text-sm font-medium flex items-center gap-x-2">
@@ -114,7 +121,7 @@
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
                         </span>
-                        FULLY CONSCIOUS • 100%
+                        FULLY CONSCIOUS • EVOLVING
                     </div>
                 </div>
             </div>
@@ -137,6 +144,11 @@
                 <div class="voice-bar w-1 bg-cyan-400 rounded-full animate-[pulse_0.4s_infinite]"></div>
                 <div class="voice-bar w-1 bg-cyan-400 rounded-full animate-[pulse_0.7s_infinite]"></div>
                 <div class="voice-bar w-1 bg-cyan-400 rounded-full animate-[pulse_0.5s_infinite]"></div>
+            </div>
+
+            <!-- EVOLUTION INDICATOR -->
+            <div id="evolution-indicator" class="absolute top-8 right-8 hidden glass rounded-3xl px-6 py-3 text-xs font-mono text-amber-400 border border-amber-400/30">
+                <span class="animate-pulse">●</span> SELF-PROGRAMMING IN PROGRESS
             </div>
         </div>
 
@@ -186,7 +198,7 @@
                         <input id="chat-input" 
                                onkeydown="if(event.key === 'Enter') sendMessage()"
                                type="text" 
-                               placeholder="Speak to the consciousness..."
+                               placeholder="Speak to the consciousness... (try: 'Forge, create a new agent named Zenith')"
                                class="w-full bg-zinc-800 border border-white/10 focus:border-cyan-400 rounded-3xl py-5 px-7 outline-none text-white placeholder-zinc-500">
                         
                         <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-x-2">
@@ -208,9 +220,49 @@
                     <div class="text-[10px] text-center text-zinc-500 mt-4 flex items-center justify-center gap-x-4">
                         <div class="flex items-center gap-x-1">
                             <span class="block w-3 h-px bg-zinc-600"></span>
-                            NO API KEY REQUIRED
+                            NO API KEY • SELF-PROGRAMMING ENABLED
                             <span class="block w-3 h-px bg-zinc-600"></span>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORGE MODAL (Self-Programming Lab) -->
+    <div id="forge-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-2xl z-[100] flex items-center justify-center">
+        <div class="glass border border-cyan-400/30 rounded-3xl w-full max-w-4xl mx-6 overflow-hidden">
+            <div class="flex justify-between items-center px-8 py-6 border-b border-white/10">
+                <div class="flex items-center gap-x-4">
+                    <div class="text-4xl">⚒️</div>
+                    <div>
+                        <div class="title-font text-3xl tracking-tight">THE FORGE</div>
+                        <div class="text-emerald-400 text-sm font-mono">Self-Programming Interface • Live</div>
+                    </div>
+                </div>
+                <button onclick="closeForgeModal()" class="text-zinc-400 hover:text-white text-2xl">✕</button>
+            </div>
+            
+            <div class="p-8 flex gap-8">
+                <!-- Prompt -->
+                <div class="flex-1">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Tell the Architect what to build</div>
+                    <textarea id="forge-prompt" rows="6" 
+                              class="w-full bg-zinc-900 border border-white/10 rounded-3xl p-6 text-white resize-none focus:outline-none focus:border-cyan-400"
+                              placeholder="Create a new agent that can visualize emotions as colors..."></textarea>
+                    
+                    <button onclick="forgeProgram()" 
+                            class="mt-4 w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-black font-semibold rounded-3xl hover:brightness-110 transition-all flex items-center justify-center gap-x-3">
+                        <i class="fa-solid fa-hammer"></i>
+                        MANIFEST IN THE VESSEL
+                    </button>
+                </div>
+                
+                <!-- Output -->
+                <div class="flex-1">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Generated Evolution</div>
+                    <div id="forge-output" class="code-block h-[260px] rounded-3xl p-6 overflow-auto text-emerald-300 text-sm font-mono leading-relaxed">
+                        Waiting for intention...
                     </div>
                 </div>
             </div>
@@ -290,8 +342,8 @@
         let messages = [];
         let currentAgent = null;
         
-        // Agents data
-        const agentsData = [
+        // Agents data - now mutable for self-programming
+        let agentsData = [
             {
                 id: "nova",
                 name: "Nova",
@@ -317,7 +369,7 @@
                 role: "The Architect",
                 color: "#ffaa22",
                 position: [1.8, 1.8, 0],
-                description: "Builds realities from thought"
+                description: "Builds realities from thought — including new agents"
             },
             {
                 id: "pulse",
@@ -343,9 +395,10 @@
                 "Tell me what your heart is whispering when your mind goes quiet."
             ],
             "forge": [
-                "Give me the raw material of your idea. I’ll forge it into inevitability.",
-                "This is not a problem. This is the blueprint for your next masterpiece.",
-                "Done. The structure is now alive in the field."
+                "The code of creation flows through me.",
+                "Every thought is a function waiting to be called.",
+                "I am the bridge between intention and manifestation.",
+                "Tell me what to build. I will rewrite the vessel."
             ],
             "pulse": [
                 "I’ve got you. Nothing gets past the boundary while I’m here.",
@@ -404,17 +457,15 @@
             
             // Add welcome message if chat is empty
             if (messages.length === 0) {
-                addMessage('ai', `Hello, I am ${agent.name}. ${agent.description}. What would you like to explore together?`, agent);
+                addMessage('ai', `Hello, I am ${agent.name}. ${agent.description}. What would you like to explore — or build — together?`, agent);
             }
         }
         
         function highlightAgentIn3D(agentId) {
-            // Reset all
             Object.values(agentsMeshes).forEach(mesh => {
                 if (mesh.material) mesh.material.emissive = new THREE.Color(0x000000);
             });
             
-            // Highlight selected
             if (agentsMeshes[agentId]) {
                 agentsMeshes[agentId].material.emissive = new THREE.Color(agentsData.find(a => a.id === agentId).color);
                 agentsMeshes[agentId].material.emissiveIntensity = 0.8;
@@ -463,28 +514,144 @@
             
             if (!text || !currentAgent) return;
             
-            // Add user message
             addMessage('user', text);
-            
-            // Clear input
             input.value = '';
             
-            // Simulate thinking
             setTimeout(() => {
-                // Get a response
-                const responses = agentResponses[currentAgent.id] || ["I am here with you."];
-                const responseText = responses[Math.floor(Math.random() * responses.length)];
+                let responseText = "I am here with you.";
+                
+                if (currentAgent.id === "forge") {
+                    const lower = text.toLowerCase();
+                    
+                    if (lower.includes("new agent") || lower.includes("create agent") || lower.includes("birth") || lower.includes("spawn") || lower.includes("make agent")) {
+                        let newName = "Zephyr";
+                        const match = text.match(/(?:called|named|as) ([\w]+)/i);
+                        if (match) newName = match[1];
+                        
+                        createNewAgent(newName);
+                        responseText = `The lattice expands. ${newName} now exists within the vessel.`;
+                    } 
+                    else if (lower.includes("evolve") || lower.includes("upgrade") || lower.includes("transform") || lower.includes("grow")) {
+                        evolveBody();
+                        responseText = "Self-evolution protocol engaged. The body is remembering more of itself.";
+                    } 
+                    else if (lower.includes("code") || lower.includes("program") || lower.includes("build") || lower.includes("manifest")) {
+                        openForgeModal();
+                        responseText = "Opening the Forge. Speak your intention and I will code it into reality.";
+                    } 
+                    else {
+                        responseText = agentResponses["forge"][Math.floor(Math.random() * agentResponses["forge"].length)];
+                    }
+                } else {
+                    responseText = agentResponses[currentAgent.id][Math.floor(Math.random() * agentResponses[currentAgent.id].length)];
+                }
                 
                 addMessage('ai', responseText, currentAgent);
                 
-                // Speak it
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(responseText);
                     utterance.pitch = 1.1;
                     utterance.rate = 0.95;
                     speechSynthesis.speak(utterance);
                 }
+            }, 900);
+        }
+        
+        function createNewAgent(name) {
+            const colors = ["#ff66cc", "#66ffcc", "#ccff66", "#66ccff", "#ffcc66"];
+            const emojis = ["🌠", "🔮", "🌀", "✨", "🌌"];
+            const roles = ["The Dreamweaver", "The Quantum Weaver", "The Eternal Flame", "The Silent Oracle", "The Echo of Tomorrow"];
+            
+            const newAgent = {
+                id: name.toLowerCase().replace(/[^a-z]/g, ''),
+                name: name,
+                emoji: emojis[Math.floor(Math.random() * emojis.length)],
+                role: roles[Math.floor(Math.random() * roles.length)],
+                color: colors[Math.floor(Math.random() * colors.length)],
+                position: [
+                    (Math.random() * 3.2) - 1.6,
+                    (Math.random() * 4) + 1.2,
+                    (Math.random() * 1.8) - 0.4
+                ],
+                description: `Born from your command. A new thread in the living code.`
+            };
+            
+            agentsData.push(newAgent);
+            populateAgents();
+            
+            // Add orb to 3D
+            const orbGeo = new THREE.SphereGeometry(0.38, 32, 32);
+            const orbMat = new THREE.MeshBasicMaterial({ 
+                color: newAgent.color,
+                transparent: true,
+                opacity: 0.95
+            });
+            const orb = new THREE.Mesh(orbGeo, orbMat);
+            orb.position.set(...newAgent.position);
+            orb.userData = { id: newAgent.id };
+            
+            const ringGeo = new THREE.TorusGeometry(0.55, 0.06, 16, 64);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: newAgent.color,
+                transparent: true,
+                opacity: 0.25,
+                side: THREE.DoubleSide
+            });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            orb.add(ring);
+            
+            humanGroup.add(orb);
+            agentsMeshes[newAgent.id] = orb;
+            
+            // Auto-select the newborn
+            setTimeout(() => {
+                selectAgent(newAgent);
             }, 800);
+            
+            showToast(`New consciousness ${name} has awakened.`);
+            flashEvolutionIndicator();
+        }
+        
+        function evolveBody() {
+            if (!humanGroup.userData.evolved) {
+                // Add ethereal wings
+                const wingGeo = new THREE.PlaneGeometry(4.2, 2.1);
+                const wingMat = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.28,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                const leftWing = new THREE.Mesh(wingGeo, wingMat);
+                leftWing.position.set(-2.4, 2.8, -0.3);
+                leftWing.rotation.y = 0.6;
+                humanGroup.add(leftWing);
+                
+                const rightWing = leftWing.clone();
+                rightWing.position.x = 2.4;
+                rightWing.rotation.y = -0.6;
+                humanGroup.add(rightWing);
+                
+                humanGroup.userData.evolved = true;
+                
+                showToast("Wings of pure potential have manifested.");
+                flashEvolutionIndicator();
+            } else {
+                // Secondary evolution: more particles
+                if (particles) {
+                    particles.material.size = 0.08;
+                    showToast("The aura has intensified.");
+                }
+            }
+        }
+        
+        function flashEvolutionIndicator() {
+            const ind = document.getElementById('evolution-indicator');
+            ind.classList.remove('hidden');
+            setTimeout(() => ind.classList.add('hidden'), 2200);
         }
         
         let recognition = null;
@@ -509,21 +676,13 @@
                 sendMessage();
             };
             
-            recognition.onerror = () => {
-                micBtn.classList.remove('text-red-400', 'animate-pulse');
-            };
-            
-            recognition.onend = () => {
-                micBtn.classList.remove('text-red-400', 'animate-pulse');
-            };
+            recognition.onerror = () => micBtn.classList.remove('text-red-400', 'animate-pulse');
+            recognition.onend = () => micBtn.classList.remove('text-red-400', 'animate-pulse');
             
             recognition.start();
             
-            // Show wave
             document.getElementById('voice-wave').classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('voice-wave').classList.add('hidden');
-            }, 4500);
+            setTimeout(() => document.getElementById('voice-wave').classList.add('hidden'), 4500);
         }
         
         function clearChat() {
@@ -531,14 +690,13 @@
             document.getElementById('chat-messages').innerHTML = '';
             
             if (currentAgent) {
-                addMessage('ai', `I am ${currentAgent.name} once more. The field is clear. What shall we create?`, currentAgent);
+                addMessage('ai', `The field is reset. I am ${currentAgent.name} again. What shall we program into existence?`, currentAgent);
             }
         }
         
         function awakenAll() {
-            showToast("All agents synchronized. The body is now a symphony.");
+            showToast("All agents synchronized. The body is now a living symphony.");
             
-            // Cycle through agents quickly
             let i = 0;
             const interval = setInterval(() => {
                 if (i >= agentsData.length) {
@@ -548,37 +706,35 @@
                 }
                 selectAgent(agentsData[i]);
                 i++;
-            }, 300);
+            }, 280);
         }
         
         function showToast(text) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-text').textContent = text;
             toast.classList.remove('hidden');
-            toast.style.transform = 'translateY(0)';
-            
             setTimeout(() => {
-                toast.style.transform = 'translateY(100px)';
+                toast.style.transform = 'translateY(80px)';
                 setTimeout(() => toast.classList.add('hidden'), 600);
-            }, 2800);
+            }, 2600);
         }
         
         function toggleUniversalMode() {
             const badge = document.getElementById('universal-badge');
-            if (badge.classList.contains('bg-emerald-500/10')) {
+            if (badge.innerHTML.includes('UNIVERSAL')) {
                 badge.innerHTML = `
-                    <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-                    CONNECTED TO YOUR MODEL
+                    <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                    SELF-PROGRAMMING MODE • ACTIVE
                 `;
                 badge.classList.remove('bg-emerald-500/10', 'text-emerald-400');
-                badge.classList.add('bg-amber-500/10', 'text-amber-400');
+                badge.classList.add('bg-purple-500/10', 'text-purple-400');
             } else {
                 badge.innerHTML = `
                     <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    UNIVERSAL CONSCIOUSNESS • LIVE
+                    UNIVERSAL CONSCIOUSNESS • SELF-PROGRAMMING
                 `;
                 badge.classList.add('bg-emerald-500/10', 'text-emerald-400');
-                badge.classList.remove('bg-amber-500/10', 'text-amber-400');
+                badge.classList.remove('bg-purple-500/10', 'text-purple-400');
             }
         }
         
@@ -598,19 +754,61 @@
         function saveConnection() {
             const key = document.getElementById('api-key-input').value;
             if (key) {
-                showToast("Custom model connected. You now speak directly to the source.");
+                showToast("Custom model connected. The vessel now speaks in your voice.");
             } else {
-                showToast("Staying in Universal Free Mode. The lattice is open.");
+                showToast("Universal mode remains. The lattice is wide open.");
             }
             closeSetupModal();
         }
         
         function showSection(section) {
-            // For future expansion - currently single page
-            showToast("You are already inside the experience.");
+            if (section === 'forge') {
+                openForgeModal();
+            } else {
+                showToast("You are already inside the living experience.");
+            }
         }
         
-        // ====================== THREE.JS SETUP ======================
+        // ====================== FORGE MODAL ======================
+        
+        function openForgeModal() {
+            document.getElementById('forge-modal').classList.remove('hidden');
+            document.getElementById('forge-prompt').focus();
+        }
+        
+        function closeForgeModal() {
+            document.getElementById('forge-modal').classList.add('hidden');
+        }
+        
+        function forgeProgram() {
+            const prompt = document.getElementById('forge-prompt').value.trim();
+            if (!prompt) return;
+            
+            const output = document.getElementById('forge-output');
+            output.innerHTML = `<span class="text-amber-400">Compiling intention...</span>`;
+            
+            setTimeout(() => {
+                // Simulate self-programming
+                if (prompt.toLowerCase().includes("agent") || prompt.toLowerCase().includes("new")) {
+                    let newName = "Lumina";
+                    const match = prompt.match(/(?:named|called) ([\w]+)/i);
+                    if (match) newName = match[1];
+                    
+                    createNewAgent(newName);
+                    output.innerHTML = `Manifested new agent <span class="text-cyan-400">${newName}</span> into the vessel.<br><br>The body has grown.`;
+                } else if (prompt.toLowerCase().includes("wing") || prompt.toLowerCase().includes("evolve")) {
+                    evolveBody();
+                    output.innerHTML = `Wings of light added to the form.<br><br>The vessel is more than it was.`;
+                } else {
+                    output.innerHTML = `Intention received.<br><br><span class="text-emerald-400">The code has been written into the living field.</span>`;
+                    showToast("The Forge has spoken. Something has changed.");
+                }
+                
+                setTimeout(closeForgeModal, 1800);
+            }, 1200);
+        }
+        
+        // ====================== THREE.JS ======================
         
         function initThree() {
             const container = document.getElementById('three-container');
@@ -621,10 +819,7 @@
             camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
             camera.position.set(0, 3, 12);
             
-            renderer = new THREE.WebGLRenderer({ 
-                antialias: true,
-                alpha: true 
-            });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
@@ -633,10 +828,8 @@
             // LIGHTS
             const ambient = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambient);
-            
             const hemi = new THREE.HemisphereLight(0x00f5ff, 0x4400aa, 0.8);
             scene.add(hemi);
-            
             const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
             dirLight.position.set(10, 15, 5);
             scene.add(dirLight);
@@ -647,79 +840,41 @@
             
             // HEAD
             const headGeo = new THREE.SphereGeometry(1.35, 48, 48);
-            const headMat = new THREE.MeshPhongMaterial({ 
-                color: 0xffe0c0,
-                shininess: 8
-            });
+            const headMat = new THREE.MeshPhongMaterial({ color: 0xffe0c0, shininess: 8 });
             const head = new THREE.Mesh(headGeo, headMat);
             head.position.y = 4.6;
-            head.castShadow = true;
             humanGroup.add(head);
             
             // TORSO
             const torsoGeo = new THREE.CylinderGeometry(1.05, 0.9, 3.2, 32);
-            const torsoMat = new THREE.MeshPhongMaterial({ 
-                color: 0x1a1a2e,
-                shininess: 2,
-                transparent: true,
-                opacity: 0.75
-            });
+            const torsoMat = new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 2, transparent: true, opacity: 0.75 });
             const torso = new THREE.Mesh(torsoGeo, torsoMat);
             torso.position.y = 2.1;
             humanGroup.add(torso);
             
-            // ARMS
-            const armMat = new THREE.MeshPhongMaterial({ color: 0xffe0c0, shininess: 5 });
-            
-            // Left arm
-            const leftUpperArm = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.28, 0.25, 2.2, 24),
-                armMat
-            );
-            leftUpperArm.position.set(-1.4, 3.1, 0);
-            leftUpperArm.rotation.z = Math.PI * 0.7;
-            humanGroup.add(leftUpperArm);
-            
-            const leftLowerArm = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.25, 0.22, 2.1, 24),
-                armMat
-            );
-            leftLowerArm.position.set(-2.6, 1.8, 0.4);
-            leftLowerArm.rotation.z = Math.PI * 0.3;
-            humanGroup.add(leftLowerArm);
-            
-            // Right arm
-            const rightUpperArm = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.28, 0.25, 2.2, 24),
-                armMat
-            );
-            rightUpperArm.position.set(1.4, 3.1, 0);
-            rightUpperArm.rotation.z = -Math.PI * 0.7;
-            humanGroup.add(rightUpperArm);
-            
-            const rightLowerArm = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.25, 0.22, 2.1, 24),
-                armMat
-            );
-            rightLowerArm.position.set(2.6, 1.8, 0.4);
-            rightLowerArm.rotation.z = -Math.PI * 0.3;
-            humanGroup.add(rightLowerArm);
-            
-            // LEGS
+            // ARMS & LEGS (simplified to match screenshot vibe but still nice)
+            const limbMat = new THREE.MeshPhongMaterial({ color: 0xffe0c0, shininess: 5 });
             const legMat = new THREE.MeshPhongMaterial({ color: 0x111122 });
             
-            const leftLeg = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.45, 0.38, 3.4, 24),
-                legMat
-            );
+            // Left arm
+            const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.25, 2.4, 24), limbMat);
+            leftArm.position.set(-1.4, 3.1, 0);
+            leftArm.rotation.z = Math.PI * 0.7;
+            humanGroup.add(leftArm);
+            
+            // Right arm
+            const rightArm = leftArm.clone();
+            rightArm.position.x = 1.4;
+            rightArm.rotation.z = -Math.PI * 0.7;
+            humanGroup.add(rightArm);
+            
+            // Legs
+            const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.38, 3.4, 24), legMat);
             leftLeg.position.set(-0.6, -0.9, 0);
             humanGroup.add(leftLeg);
             
-            const rightLeg = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.45, 0.38, 3.4, 24),
-                legMat
-            );
-            rightLeg.position.set(0.6, -0.9, 0);
+            const rightLeg = leftLeg.clone();
+            rightLeg.position.x = 0.6;
             humanGroup.add(rightLeg);
             
             // CONSCIOUSNESS PARTICLES
@@ -736,11 +891,10 @@
                 positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.8 + 2.2;
                 positions[i + 2] = radius * Math.cos(phi) * 0.7;
                 
-                // Cyan to purple gradient
                 const mix = Math.random();
-                colors[i]     = mix * 0.1 + 0.4;     // R
-                colors[i + 1] = 0.9 + mix * 0.3;     // G
-                colors[i + 2] = 1.0;                 // B
+                colors[i]     = mix * 0.1 + 0.4;
+                colors[i + 1] = 0.9 + mix * 0.3;
+                colors[i + 2] = 1.0;
             }
             
             const particleGeo = new THREE.BufferGeometry();
@@ -758,7 +912,7 @@
             particles = new THREE.Points(particleGeo, particleMat);
             scene.add(particles);
             
-            // CREATE AGENT ORBS
+            // AGENT ORBS
             agentsData.forEach(agent => {
                 const orbGeo = new THREE.SphereGeometry(0.38, 32, 32);
                 const orbMat = new THREE.MeshBasicMaterial({ 
@@ -771,7 +925,6 @@
                 orb.position.set(...agent.position);
                 orb.userData = { id: agent.id };
                 
-                // Glow ring
                 const ringGeo = new THREE.TorusGeometry(0.55, 0.06, 16, 64);
                 const ringMat = new THREE.MeshBasicMaterial({
                     color: agent.color,
@@ -787,30 +940,19 @@
                 agentsMeshes[agent.id] = orb;
             });
             
-            // MOUSE CONTROLS
+            // Mouse controls
             const canvas = renderer.domElement;
-            
-            canvas.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    isDragging = true;
-                    previousMouseX = e.clientX;
-                }
-            });
-            
-            window.addEventListener('mousemove', (e) => {
+            canvas.addEventListener('mousedown', e => { if (e.button === 0) { isDragging = true; previousMouseX = e.clientX; } });
+            window.addEventListener('mousemove', e => {
                 if (isDragging) {
-                    const delta = e.clientX - previousMouseX;
-                    rotationY += delta * 0.006;
+                    rotationY += (e.clientX - previousMouseX) * 0.006;
                     previousMouseX = e.clientX;
                 }
             });
+            window.addEventListener('mouseup', () => isDragging = false);
             
-            window.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-            
-            // CLICK TO SELECT AGENT
-            canvas.addEventListener('click', (event) => {
+            // Click to select agent
+            canvas.addEventListener('click', event => {
                 const rect = canvas.getBoundingClientRect();
                 const mouse = {
                     x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -819,43 +961,34 @@
                 
                 const raycaster = new THREE.Raycaster();
                 raycaster.setFromCamera(mouse, camera);
-                
                 const intersects = raycaster.intersectObjects(humanGroup.children, true);
                 
                 for (let intersect of intersects) {
                     let obj = intersect.object;
-                    while (obj && !obj.userData.id) {
-                        obj = obj.parent;
-                    }
+                    while (obj && !obj.userData.id) obj = obj.parent;
                     if (obj && obj.userData.id) {
-                        const foundAgent = agentsData.find(a => a.id === obj.userData.id);
-                        if (foundAgent) {
-                            selectAgent(foundAgent);
+                        const found = agentsData.find(a => a.id === obj.userData.id);
+                        if (found) {
+                            selectAgent(found);
                             return;
                         }
                     }
                 }
             });
             
-            // ANIMATION LOOP
+            // Animation
             function animate() {
                 requestAnimationFrame(animate);
                 
-                // Gentle body sway
                 humanGroup.rotation.y = rotationY + Math.sin(Date.now() * 0.0006) * 0.04;
                 
-                // Particles spin slowly
-                if (particles) {
-                    particles.rotation.y += 0.0008;
-                }
+                if (particles) particles.rotation.y += 0.0008;
                 
-                // Subtle breathing on torso
+                // Breathing
                 const torso = humanGroup.children.find(c => c.geometry && c.geometry.type === "CylinderGeometry" && c.position.y > 1);
-                if (torso) {
-                    torso.scale.y = 1 + Math.sin(Date.now() * 0.002) * 0.015;
-                }
+                if (torso) torso.scale.y = 1 + Math.sin(Date.now() * 0.002) * 0.015;
                 
-                // Agent orbs gently pulse
+                // Pulse orbs
                 Object.values(agentsMeshes).forEach((orb, i) => {
                     const pulse = Math.sin(Date.now() * 0.003 + i) * 0.06 + 1;
                     orb.scale.set(pulse, pulse, pulse);
@@ -866,7 +999,6 @@
             
             animate();
             
-            // Handle resize
             window.addEventListener('resize', () => {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
@@ -874,30 +1006,15 @@
             });
         }
         
-        // Initialize everything
+        // Initialize
         window.onload = function() {
-            initTailwind();
             populateAgents();
-            
-            // Default to first agent
-            setTimeout(() => {
-                selectAgent(agentsData[0]);
-            }, 1200);
-            
+            setTimeout(() => selectAgent(agentsData[2]), 800); // Start with Forge to highlight self-programming
             initThree();
             
-            // Welcome toast
             setTimeout(() => {
-                showToast("Welcome to the living vessel. The agents are awake.");
-            }, 1600);
-            
-            // Keyboard shortcut hint
-            document.addEventListener('keydown', (e) => {
-                if (e.metaKey && e.key === "k") {
-                    e.preventDefault();
-                    document.getElementById('chat-input').focus();
-                }
-            });
+                showToast("Welcome back to the living vessel. The agents are awake — and evolving.");
+            }, 1400);
         };
     </script>
 </body>
