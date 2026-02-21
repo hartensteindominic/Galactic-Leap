@@ -20,3 +20,12 @@ This repo includes `render.yaml` and a `Dockerfile`, so deployment is one-click 
 4. Deploy.
 
 Render will build from `Dockerfile`, expose port `3000`, and keep `/` as the health check.
+
+
+## Checks
+
+```bash
+npm test
+```
+
+This runs a syntax validation of `server.js` to catch merge/regression issues early.

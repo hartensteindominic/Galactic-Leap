@@ -582,6 +582,20 @@ const webPage = `<!doctype html>
 </body>
 </html>`;
 
+
+function computeMockReply(history, trigger, profile = {}) {
+  const historyText = Array.isArray(history)
+    ? history.map((item) => `${item?.role || ""}:${item?.content || ""}`).join("|")
+    : "";
+  const profileText = JSON.stringify(profile || {});
+  const seedSource = `${trigger}|${historyText}|${profileText}`;
+  let hash = 0;
+  for (let i = 0; i < seedSource.length; i += 1) {
+    hash = (hash * 31 + seedSource.charCodeAt(i)) >>> 0;
+  }
+  return mockAutonomousLines[hash % mockAutonomousLines.length];
+}
+
 function sendJson(res, status, body) {
   res.writeHead(status, {
     "Content-Type": "application/json",
@@ -596,15 +610,19 @@ async function parseBody(req) {
     chunks.push(chunk);
   }
   const raw = Buffer.concat(chunks).toString("utf8") || "{}";
-  return JSON.parse(raw);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
 }
 
 async function getAiReply(history, trigger, profile = {}) {
   if (!openAiApiKey) {
-    return `${mockAutonomousLines[Math.floor(Math.random() * mockAutonomousLines.length)]} (mode: ${trigger})`;
+    return `${computeMockReply(history, trigger, profile)} (mode: ${trigger})`;
   }
 
-  const profileContext = profile && typeof profile === "object" ? profile : {}
+  const profileContext = profile && typeof profile === "object" ? profile : {};
 
   const messages = [
     { role: "system", content: autonomousSystemPrompt },
