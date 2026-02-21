@@ -162,6 +162,12 @@
         font-weight: 600;
       }
 
+      button:disabled,
+      input:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
       .memory {
         margin-top: 0.7rem;
         font-size: 0.75rem;
@@ -210,6 +216,7 @@
       const statusEl = document.getElementById("status");
       const memoryInfoEl = document.getElementById("memoryInfo");
       let isThinking = false;
+      let thinkingTimer = null;
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -335,18 +342,33 @@
         userInput.value = "";
 
         isThinking = true;
+        userInput.disabled = true;
+        const submitButton = chatForm.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
         statusEl.textContent = "Learning profile: deep-thinking mode engaged…";
 
         const thinkingMessage = addMessage("ai", "⏳ Analyzing intent graph, memory links, and response strategy…", true);
         const delayMs = 900 + Math.min(prompt.length * 32, 2200);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-        const response = generateResponse(prompt);
-        thinkingMessage.remove();
-        addMessage("ai", response);
+        try {
+          await new Promise((resolve) => {
+            thinkingTimer = setTimeout(resolve, delayMs);
+          });
 
-        learnFrom(prompt, response);
-        isThinking = false;
+          const response = generateResponse(prompt);
+          thinkingMessage.remove();
+          addMessage("ai", response);
+          learnFrom(prompt, response);
+        } finally {
+          if (thinkingTimer) {
+            clearTimeout(thinkingTimer);
+            thinkingTimer = null;
+          }
+          isThinking = false;
+          userInput.disabled = false;
+          if (submitButton) submitButton.disabled = false;
+          userInput.focus();
+        }
       });
 
       function loadBrain() {
@@ -437,11 +459,20 @@
         memoryInfoEl.textContent = `${learnedTerms} concepts in memory • ${brain.learnedPairs.length} learned conversational links`;
       }
 
+      function escapeHtml(text) {
+        return text
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
       function addMessage(role, content, isTemporary = false) {
         const node = document.createElement("article");
         node.className = `message ${role}`;
         const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        node.innerHTML = `${content}<small>${role.toUpperCase()} • ${time}</small>`;
+        node.innerHTML = `${escapeHtml(content)}<small>${role.toUpperCase()} • ${time}</small>`;
         if (isTemporary) node.dataset.temporary = "true";
         chatLog.appendChild(node);
         chatLog.scrollTop = chatLog.scrollHeight;
