@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: agentic-ai-live
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
